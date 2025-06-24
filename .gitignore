@@ -1,0 +1,7 @@
+build/
+main
+/auth.db
+/auth.db*
+/bak/
+/tmp/
+__debug_bin*

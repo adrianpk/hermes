@@ -1,0 +1,44 @@
+@import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
+
+/* Custom styles */
+
+/* Note: For now, we don't have the assets preprocessor in place, but later these custom styles will wrap actual Tailwind classes to declutter the layout and templates. */
+
+/* Header styles */
+.header {
+    @apply text-2xl font-bold mb-4;
+}
+
+/* Button styles */
+.button {
+    @apply bg-blue-500 text-white px-4 py-2 rounded;
+}
+
+.button-green {
+    @apply bg-green-500;
+}
+
+.button-yellow {
+    @apply bg-yellow-500;
+}
+
+.button-red {
+    @apply bg-red-500;
+}
+
+/* Table styles */
+.table {
+    @apply min-w-full bg-white border border-gray-200;
+}
+
+.table th, .table td {
+    @apply py-2 px-4 border-b;
+}
+
+.table th {
+    @apply text-left;
+}
+
+.table-actions {
+    @apply text-center;
+}
