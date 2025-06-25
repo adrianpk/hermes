@@ -7,6 +7,7 @@ import (
 	"github.com/adrianpk/hermes/internal/am"
 	"github.com/adrianpk/hermes/internal/core"
 	"github.com/adrianpk/hermes/internal/feat/auth"
+	"github.com/adrianpk/hermes/internal/feat/ssg"
 	"github.com/adrianpk/hermes/internal/repo/sqlite"
 )
 
@@ -28,39 +29,34 @@ func main() {
 	cfg := am.LoadCfg(namespace, am.Flags)
 	opts := am.DefOpts(log, cfg)
 
-	// FlashManager
 	flashManager := am.NewFlashManager()
-
-	// Append WithFlashMiddleware to opts
 	opts = append(opts, am.WithFlashMiddleware(flashManager))
 
-	// Create the app with the updated opts
 	app := core.NewApp(name, version, assetsFS, opts...)
 
 	queryManager := am.NewQueryManager(assetsFS, engine)
 	templateManager := am.NewTemplateManager(assetsFS)
 
-	// Migrator
+	repo := sqlite.NewHermesRepo(queryManager)
 	migrator := am.NewMigrator(assetsFS, engine)
-
-	// Seeder
 	seeder := am.NewSeeder(assetsFS, engine)
-
-	// FileServer
 	fileServer := am.NewFileServer(assetsFS)
+
 	app.MountFileServer("/", fileServer)
 
 	// Auth feature
-	authRepo := sqlite.NewAuthRepo(queryManager)
-	authService := auth.NewService(authRepo)
+	authService := auth.NewService(repo)
 	authWebHandler := auth.NewWebHandler(templateManager, flashManager, authService)
 	authWebRouter := auth.NewWebRouter(authWebHandler)
-	authAPIHandler := auth.NewAPIHandler(authService)
-	authAPIRouter := auth.NewAPIRouter(authAPIHandler)
-	authSeeder := auth.NewSeeder(assetsFS, engine, authRepo)
+	authSeeder := auth.NewSeeder(assetsFS, engine, repo)
 
 	app.MountWeb("/auth", authWebRouter)
-	app.MountAPI(version, "/auth", authAPIRouter)
+
+	// SSG feature
+	ssgService := ssg.NewService(repo)
+	ssgWebHandler := ssg.NewWebHandler(templateManager, flashManager, ssgService)
+	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler)
+	app.MountWeb("/ssg", ssgWebRouter)
 
 	// Add deps
 	app.Add(migrator)
@@ -69,13 +65,14 @@ func main() {
 	app.Add(fileServer)
 	app.Add(queryManager)
 	app.Add(templateManager)
-	app.Add(authRepo)
+	app.Add(repo)
 	app.Add(authService)
 	app.Add(authWebHandler)
-	app.Add(authAPIHandler)
 	app.Add(authWebRouter)
-	app.Add(authAPIRouter)
 	app.Add(authSeeder)
+	app.Add(ssgService)
+	app.Add(ssgWebHandler)
+	app.Add(ssgWebRouter)
 
 	err := app.Setup(ctx)
 	if err != nil {
