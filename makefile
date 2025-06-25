@@ -79,6 +79,16 @@ setenv:
 	@export HERMES_RENDER_API_ERRORS="true"
 	@echo "Environment variables set."
 
+# Generate migration
+new-migration:
+	@read -p "Migration name: " name; \
+	timestamp=$$(date +"%Y%m%d%H%M%S"); \
+	kebab=$$(echo "$$name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | sed -E 's/^-+|-+$$//g'); \
+	filename="./assets/migration/sqlite/$${timestamp}-$${kebab}.sql"; \
+	mkdir -p ./assets/migration/sqlite; \
+	touch "$$filename"; \
+	echo "Created $$filename"
+
 # Clean the build directory
 clean:
 	@echo "Cleaning up..."
