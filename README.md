@@ -1,9 +1,8 @@
-# HERMES
+# Hermes
 
-## Bootstrap new project
+Hermes is a static site generator (SSG) written in Go.
 
-Run the following to scaffold a new project based on this template:
+It aims to provide a clean, fast, and flexible way to build static websites. While still early in development, Hermes is designed for simplicity and will evolve with new features as the project grows.
 
-```bash
-curl -s https://raw.githubusercontent.com/aquamarinepk/hermes/main/bootstrap.sh | bash -s github.com/yourname/yourproject
+![New Content Screenshot](docs/img/new-content.png)
 
