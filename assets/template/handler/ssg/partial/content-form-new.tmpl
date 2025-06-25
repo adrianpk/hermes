@@ -15,17 +15,48 @@
       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
     />
   </div>
-  <div>
-    <label for="body" class="block text-sm font-medium text-gray-700">
-      Body:
-    </label>
-    <textarea
-      id="body"
-      name="body"
-      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-      rows="6"
-    >{{ .Data.Body }}</textarea>
+  <!-- WIP: Using marked.js and github-markdown-css from CDN and configured inline for now. This will be improved later. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+  <style>
+    #preview.markdown-body {
+      --bgColor-default: #fff !important;
+      --fgColor-default: #24292e !important;
+      background-color: var(--bgColor-default) !important;
+      color: var(--fgColor-default) !important;
+    }
+    #preview.markdown-body ul,
+    #preview.markdown-body ol {
+      padding-left: 2em !important;
+      list-style-type: disc !important;
+    }
+    #preview.markdown-body ul {
+      list-style-position: inside !important;
+    }
+  </style>
+  <div class="flex w-full" style="min-height: 300px;">
+    <div class="w-1/2 pr-2 flex flex-col">
+      <label for="body" class="block text-sm font-medium text-gray-700">Markdown:</label>
+      <textarea
+        id="body"
+        name="body"
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm flex-1"
+        rows="16"
+      >{{ .Data.Body }}</textarea>
+    </div>
+    <div class="w-1/2 pl-2 flex flex-col">
+      <label class="block text-sm font-medium text-gray-700">Preview:</label>
+      <div id="preview" class="markdown-body mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white overflow-auto flex-1" style="min-height: 180px;"></div>
+    </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    function updatePreview() {
+      const md = document.getElementById('body').value;
+      document.getElementById('preview').innerHTML = window.marked.parse(md);
+    }
+    document.getElementById('body').addEventListener('input', updatePreview);
+    updatePreview();
+  </script>
   <div>
     <button
       type="submit"
