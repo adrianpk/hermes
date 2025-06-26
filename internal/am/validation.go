@@ -6,16 +6,37 @@ import (
 	"strings"
 )
 
+// ValidationField represents a field-specific validation error.
+type ValidationField struct {
+	Name    string
+	Value   string
+	Message string
+}
+
 // Validation holds the result of one or many validation checks.
 // It can collect multiple error messages unless strict mode is enabled.
 // Use IsValid() to check result, and Error() or JSON() to report.
 type Validation struct {
 	Errors []string
+	Fields map[string]ValidationField
 }
 
 // Add adds an error message to the validation result.
 func (v *Validation) Add(err string) {
 	v.Errors = append(v.Errors, err)
+}
+
+// AddFieldError adds a field-specific error to the validation result.
+func (v *Validation) AddFieldError(field, value, message string) {
+	v.Errors = append(v.Errors, message)
+	if v.Fields == nil {
+		v.Fields = make(map[string]ValidationField)
+	}
+	v.Fields[field] = ValidationField{
+		Name:    field,
+		Value:   value,
+		Message: message,
+	}
 }
 
 // IsValid returns true if there are no validation errors.
@@ -40,13 +61,26 @@ func (v Validation) JSON() string {
 	return string(data)
 }
 
+// FieldMsg returns the message for a given field tag name, or an empty string if none exists.
+func (v Validation) FieldMsg(field string) string {
+	if v.Fields == nil {
+		return ""
+	}
+
+	if f, ok := v.Fields[field]; ok {
+		return f.Message
+	}
+
+	return ""
+}
+
 // Validator is a function type that performs validation on any input.
 type Validator func(v any) (Validation, error)
 
-// ComposeValidators allows combining multiple Validator functions into one.
+// ComposeValidators2 allows combining multiple Validator functions into one.
 // By default, it will collect all validation errors.
 // If strict is true, it will stop after the first error.
-func ComposeValidators(fns ...Validator) Validator {
+func ComposeValidators2(fns ...Validator) Validator {
 	return func(v any) (Validation, error) {
 		out := Validation{}
 		for _, fn := range fns {
@@ -55,7 +89,43 @@ func ComposeValidators(fns ...Validator) Validator {
 				return out, err
 			}
 			out.Errors = append(out.Errors, res.Errors...)
+			if res.Fields != nil {
+				if out.Fields == nil {
+					out.Fields = make(map[string]ValidationField)
+				}
+				for k, field := range res.Fields {
+					out.Fields[k] = field
+				}
+			}
 		}
+		return out, nil
+	}
+}
+
+// ComposeValidators allows combining multiple Validator functions into one.
+// By default, it will collect all validation errors.
+// If strict is true, it will stop after the first error.
+func ComposeValidators(fns ...Validator) Validator {
+	return func(v any) (Validation, error) {
+		out := Validation{}
+		for i, fn := range fns {
+			res, err := fn(v)
+			if err != nil {
+				fmt.Printf("[ComposeValidators] Validator %d returned error: %v\n", i, err)
+				return out, err
+			}
+			fmt.Printf("[ComposeValidators] Validator %d result: errors=%v, fields=%v\n", i, res.Errors, res.Fields)
+			out.Errors = append(out.Errors, res.Errors...)
+			if res.Fields != nil {
+				if out.Fields == nil {
+					out.Fields = make(map[string]ValidationField)
+				}
+				for k, field := range res.Fields {
+					out.Fields[k] = field
+				}
+			}
+		}
+		fmt.Printf("[ComposeValidators] Final validation: errors=%v, fields=%v\n", out.Errors, out.Fields)
 		return out, nil
 	}
 }
@@ -71,6 +141,14 @@ func ComposeValidatorsStrict(fns ...Validator) Validator {
 				return out, err
 			}
 			out.Errors = append(out.Errors, res.Errors...)
+			if res.Fields != nil {
+				if out.Fields == nil {
+					out.Fields = make(map[string]ValidationField)
+				}
+				for k, field := range res.Fields {
+					out.Fields[k] = field
+				}
+			}
 			if len(out.Errors) > 0 {
 				break
 			}
@@ -86,7 +164,7 @@ func MinLength(field, val string, min int) Validator {
 	return func(_ any) (Validation, error) {
 		v := Validation{}
 		if len(val) < min {
-			v.Add(fmt.Sprintf("%s: must be at least %d characters", field, min))
+			v.AddFieldError(field, val, fmt.Sprintf("%s: must be at least %d characters", field, min))
 		}
 		return v, nil
 	}
@@ -97,7 +175,7 @@ func MaxLength(field, val string, max int) Validator {
 	return func(_ any) (Validation, error) {
 		v := Validation{}
 		if len(val) > max {
-			v.Add(fmt.Sprintf("%s: must be at most %d characters", field, max))
+			v.AddFieldError(field, val, fmt.Sprintf("%s: must be at most %d characters", field, max))
 		}
 		return v, nil
 	}

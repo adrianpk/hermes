@@ -25,7 +25,10 @@ func (h *WebHandler) ListTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[struct {
+		Org   Org
+		Teams []Team
+	}](r, struct {
 		Org   Org
 		Teams []Team
 	}{
@@ -64,9 +67,9 @@ func (h *WebHandler) NewTeam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := NewTeam(org.ID(), "", "", "")
-	page := am.NewPage(r, team)
-	page.SetFormAction(am.CreatePath(authPath, teamPath))
-	page.SetFormButtonText("Create")
+	page := am.NewPage[Team](r, team)
+	page.Form.SetAction(am.CreatePath(authPath, teamPath))
+	page.Form.SetSubmitButtonText("Create")
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(team)
@@ -141,7 +144,7 @@ func (h *WebHandler) ShowTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, team)
+	page := am.NewPage[Team](r, team)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(team)
@@ -181,9 +184,9 @@ func (h *WebHandler) EditTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, team)
-	page.SetFormAction(am.UpdatePath(authPath, teamPath))
-	page.SetFormButtonText("Update")
+	page := am.NewPage[Team](r, team)
+	page.Form.SetAction(am.UpdatePath(authPath, teamPath))
+	page.Form.SetSubmitButtonText("Update")
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(team)
@@ -298,7 +301,7 @@ func (h *WebHandler) ListTeamMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[any](r, struct {
 		Team       Team
 		Members    []User
 		Unassigned []User

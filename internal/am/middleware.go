@@ -50,7 +50,7 @@ func initCSRF(cfg *Config) {
 
 		csrfMiddleware = csrf.Protect(
 			[]byte(key),
-			csrf.FieldName(CSRFFieldName), 
+			csrf.FieldName(CSRFFieldName),
 			csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, to, http.StatusFound)
 			})),

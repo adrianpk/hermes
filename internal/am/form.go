@@ -8,7 +8,80 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/csrf"
 )
+
+// Form interface defines accessors and setters for BaseForm properties and its methods.
+type Form interface {
+	Action() string
+	SetAction(action string)
+	Method() string
+	SetMethod(method string)
+	CSRF() string
+	SetCSRF(csrf string)
+	Button() Button
+	SetButton(button Button)
+	SetSubmitButtonText(text string)
+	SetSubmitButtonStyle(style string)
+	GenCSRFToken(r *http.Request)
+	SetValidation(validation *Validation)
+	Validation() *Validation
+}
+
+// BaseForm struct represents a form with action, method, csrf token, and a button.
+type BaseForm struct {
+	action     string
+	method     string
+	csrf       string
+	button     Button
+	validation *Validation
+}
+
+func NewBaseForm(r *http.Request) *BaseForm {
+	return &BaseForm{
+		action: "",
+		csrf:   csrf.Token(r),
+		button: Button{
+			Text:  "Submit",
+			Style: "",
+		},
+		validation: &Validation{},
+	}
+}
+
+// Accessors and setters for BaseForm to satisfy Form interface
+func (f *BaseForm) Action() string          { return f.action }
+func (f *BaseForm) SetAction(action string) { f.action = action }
+func (f *BaseForm) Method() string          { return f.method }
+func (f *BaseForm) SetMethod(method string) { f.method = method }
+func (f *BaseForm) CSRF() string            { return f.csrf }
+func (f *BaseForm) SetCSRF(csrf string)     { f.csrf = csrf }
+func (f *BaseForm) Button() Button          { return f.button }
+func (f *BaseForm) SetButton(button Button) { f.button = button }
+func (f *BaseForm) SetSubmitButtonText(text string) {
+	f.button.Text = text
+}
+func (f *BaseForm) SetSubmitButtonStyle(style string) {
+	f.button.Style = style
+}
+
+// GenCSRFToken generates a csrf token and sets it in the form.
+func (f *BaseForm) GenCSRFToken(r *http.Request) {
+	f.csrf = csrf.Token(r)
+}
+
+func (f *BaseForm) SetValidation(validation *Validation) {
+	f.validation = validation
+}
+func (f *BaseForm) Validation() *Validation {
+	return f.validation
+}
+
+// Button struct represents a button with text and style.
+type Button struct {
+	Text  string
+	Style string
+}
 
 // FormConfig holds configuration for form mapping
 type FormConfig struct {
