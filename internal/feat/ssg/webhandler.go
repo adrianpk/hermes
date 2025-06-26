@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/adrianpk/hermes/internal/am"
+	"github.com/adrianpk/hermes/internal/feat/auth"
+	"github.com/google/uuid"
 )
 
 const (
@@ -44,7 +46,7 @@ func (h *WebHandler) NewContent(w http.ResponseWriter, r *http.Request) {
 		BaseForm: am.NewBaseForm(r),
 	}
 
-	h.renderNewContent(w, r, form, "", http.StatusOK)
+	h.newContent(w, r, form, "", http.StatusOK)
 }
 
 func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
@@ -53,17 +55,20 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 
 	form, err := ContentFormFromRequest(r)
 	if err != nil {
-		h.renderNewContent(w, r, form, "Invalid form data", http.StatusBadRequest)
+		h.newContent(w, r, form, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	err = form.Validate()
 	if err != nil || form.HasErrors() {
-		h.renderNewContent(w, r, form, "Validation failed", http.StatusBadRequest)
+		h.newContent(w, r, form, "Validation failed", http.StatusBadRequest)
 		return
 	}
 
+	// NOTE: This will come from the session in the future.
+	user := h.sampleUserInSession(r)
 	content := NewContent(form.Heading, form.Body)
+	content.UserID = user.ID()
 	content.GenCreateValues()
 
 	err = h.service.CreateContent(ctx, content)
@@ -76,7 +81,7 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, path, http.StatusSeeOther)
 }
 
-func (h *WebHandler) renderNewContent(w http.ResponseWriter, r *http.Request, form ContentForm, errorMessage string, statusCode int) {
+func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form ContentForm, errorMessage string, statusCode int) {
 	h.Log().Info("Rendering new content page with errors")
 
 	content := NewContent(form.Heading, form.Body)
@@ -106,5 +111,20 @@ func (h *WebHandler) renderNewContent(w http.ResponseWriter, r *http.Request, fo
 	_, err = buf.WriteTo(w)
 	if err != nil {
 		h.Err(w, err, am.ErrCannotWriteResponse, http.StatusInternalServerError)
+	}
+}
+
+// sampleUserInSession returns a fake user for now.
+// We will replace it with real authentication logic when available.
+func (h *WebHandler) sampleUserInSession(r *http.Request) auth.User {
+	// Fake user: all zeros except last digit as 1
+	return auth.User{
+		BaseModel: am.NewModel(
+			am.WithID(uuid.MustParse("00000000-0000-0000-0000-000000000001")),
+			am.WithType("user"),
+		),
+		Username: "fakeuser",
+		Name:     "Fake User",
+		IsActive: true,
 	}
 }

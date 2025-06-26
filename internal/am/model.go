@@ -91,6 +91,15 @@ func WithID(id uuid.UUID) ModelOption {
 	}
 }
 
+// WithIDString sets the id of the BaseModel from a string UUID.
+func WithIDString(idStr string) ModelOption {
+	return func(m *BaseModel) {
+		if parsed, err := uuid.Parse(idStr); err == nil {
+			m.id = parsed
+		}
+	}
+}
+
 // WithShortID sets the shortID of the BaseModel.
 func WithShortID(shortID string) ModelOption {
 	return func(m *BaseModel) {
