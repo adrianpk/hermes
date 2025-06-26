@@ -9,7 +9,7 @@ func NewWebRouter(handler *WebHandler, opts ...am.Option) *am.Router {
 
 	// Content routes
 	core.Get("/new-content", handler.NewContent)
-	// core.Post("/create-content", handler.CreateContent)
+	core.Post("/create-content", handler.CreateContent)
 	// core.Get("/show-content", handler.ShowContent)
 	// core.Get("/edit-content", handler.EditContent)
 	// core.Post("/update-content", handler.UpdateContent)

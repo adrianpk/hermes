@@ -18,8 +18,8 @@ func (h *WebHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, users)
-	page.SetFormAction(authPath)
+	page := am.NewPage[User](r, users)
+	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
 	menu.AddNewItem(userType)
@@ -48,9 +48,9 @@ func (h *WebHandler) NewUser(w http.ResponseWriter, r *http.Request) {
 
 	user := NewUser("", "")
 
-	page := am.NewPage(r, user)
-	page.SetFormAction(am.CreatePath(authPath, "user"))
-	page.SetFormButtonText("Create")
+	page := am.NewPage[User](r, user)
+	page.Form.SetAction(am.CreatePath(authPath, "user"))
+	page.Form.SetSubmitButtonText("Create")
 
 	authFlash := h.GetFlash(r)
 	amFlash := am.Flash{}
@@ -142,7 +142,7 @@ func (h *WebHandler) ShowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, user)
+	page := am.NewPage[User](r, user)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(user)
@@ -185,9 +185,9 @@ func (h *WebHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, &user)
-	page.SetFormAction(am.UpdatePath(authPath, "user"))
-	page.SetFormButtonText("Update")
+	page := am.NewPage[User](r, &user)
+	page.Form.SetAction(am.UpdatePath(authPath, "user"))
+	page.Form.SetSubmitButtonText("Update")
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(user)
@@ -304,7 +304,7 @@ func (h *WebHandler) ListUserRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[any](r, struct {
 		User            User
 		AssignedRoles   []Role
 		UnassignedRoles []Role
@@ -314,7 +314,7 @@ func (h *WebHandler) ListUserRoles(w http.ResponseWriter, r *http.Request) {
 		UnassignedRoles: unassignedRoles,
 	})
 
-	page.SetFormAction("/auth/add-role-to-user")
+	page.Form.SetAction("/auth/add-role-to-user")
 
 	menu := page.NewMenu(authPath)
 	menu.AddShowItem(user, "Back")
@@ -372,7 +372,7 @@ func (h *WebHandler) ListUserPermissions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[any](r, struct {
 		User                  User
 		PermissionsFromRoles  []Permission
 		DirectPermissions     []Permission

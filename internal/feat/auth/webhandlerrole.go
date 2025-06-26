@@ -20,8 +20,8 @@ func (h *WebHandler) ListRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, roles)
-	page.SetFormAction(authPath)
+	page := am.NewPage[Role](r, roles)
+	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
 	menu.AddNewItem(rolePath)
@@ -50,9 +50,9 @@ func (h *WebHandler) NewRole(w http.ResponseWriter, r *http.Request) {
 
 	role := NewRole("", "", "active")
 
-	page := am.NewPage(r, role)
-	page.SetFormAction(am.CreatePath(authPath, rolePath))
-	page.SetFormButtonText("Create")
+	page := am.NewPage[Role](r, role)
+	page.Form.SetAction(am.CreatePath(authPath, rolePath))
+	page.Form.SetSubmitButtonText("Create")
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(role)
@@ -120,7 +120,7 @@ func (h *WebHandler) ShowRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, role)
+	page := am.NewPage[Role](r, role)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(role)
@@ -162,9 +162,9 @@ func (h *WebHandler) EditRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage(r, role)
-	page.SetFormAction(am.UpdatePath(authPath, rolePath))
-	page.SetFormButtonText("Update")
+	page := am.NewPage[Role](r, role)
+	page.Form.SetAction(am.UpdatePath(authPath, rolePath))
+	page.Form.SetSubmitButtonText("Update")
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(role)
@@ -273,7 +273,7 @@ func (h *WebHandler) ListRolePermissions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[any](r, struct {
 		ID                   uuid.UUID
 		Name                 string
 		Description          string
@@ -416,7 +416,7 @@ func (h *WebHandler) ListUserContextualRoles(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	page := am.NewPage(r, struct {
+	page := am.NewPage[any](r, struct {
 		User            User
 		Team            Team
 		AssignedRoles   []Role
@@ -428,7 +428,7 @@ func (h *WebHandler) ListUserContextualRoles(w http.ResponseWriter, r *http.Requ
 		UnassignedRoles: unassignedRoles,
 	})
 
-	page.SetFormAction(am.CreatePath(authPath, contextualRolePath))
+	page.Form.SetAction(am.CreatePath(authPath, contextualRolePath))
 
 	menu := am.NewMenu(authPath)
 	menu.AddGenericItem("list-team-members", team.ID().String(), "Back")
