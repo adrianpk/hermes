@@ -19,29 +19,7 @@
     />
     {{ FieldMsg $form $headingField }}
   </div>
-  <!-- WIP: Using marked.js and github-markdown-css from CDN and configured inline for now. This will be improved later. -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
-  <style>
-    #preview.markdown-body {
-      --bgColor-default: #fff !important;
-      --fgColor-default: #24292e !important;
-      background-color: var(--bgColor-default) !important;
-      color: var(--fgColor-default) !important;
-    }
-    #preview.markdown-body ul,
-    #preview.markdown-body ol {
-      padding-left: 2em !important;
-      list-style-type: disc !important;
-    }
-    #preview.markdown-body ul {
-      list-style-position: inside !important;
-    }
-    #preview.markdown-body pre,
-    #preview.markdown-body code {
-      background-color: #f6f8fa !important;
-      color: #24292e !important;
-    }
-  </style>
+  {{ template "css.tmpl" . }}
   <div class="flex w-full" style="min-height: 300px;">
     <div id="markdown-pane" class="w-1/2 pr-2 flex flex-col">
       <label for="{{$bodyField}}" class="block text-sm font-medium text-gray-700">Markdown:</label>
@@ -59,7 +37,6 @@
       <div id="preview" class="markdown-body mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white overflow-auto flex-1" style="min-height: 180px;"></div>
     </div>
   </div>
-  {{ template "css.tmpl" . }}
   {{ template "js.tmpl" . }}
   <div>
     <button
