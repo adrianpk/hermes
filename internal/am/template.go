@@ -19,6 +19,8 @@ const (
 	mainTemplate  = "page"
 )
 
+const fieldErrClass = "text-red-600 text-sm mt-1"
+
 type TemplateManager struct {
 	Core
 	assetsFS  embed.FS
@@ -97,7 +99,7 @@ func (tm *TemplateManager) loadTemplate(key, path, handler string) {
 	tm.Log().Debugf("All template paths: %v", allPaths)
 
 	tmpl := template.New(mainTemplate)
-	//RegisterTemplateFuncs(tmpl)
+	RegisterFuncs(tmpl)
 
 	tmpl, err = tmpl.ParseFS(tm.assetsFS, allPaths...)
 	if err != nil {
@@ -180,4 +182,36 @@ func debugTemplateSimple(tmpl *template.Template) string {
 func (tm *TemplateManager) Setup(ctx context.Context) error {
 	tm.Load()
 	return nil
+}
+
+// Template helper functions
+
+// RegisterFuncs registers custom template functions.
+func RegisterFuncs(tmpl *template.Template) *template.Template {
+	return tmpl.Funcs(template.FuncMap{
+		"FieldMsg": FieldMsg,
+	})
+}
+
+func FieldMsg(form Form, field string, classes ...string) template.HTML {
+	if form == nil {
+		return ""
+	}
+
+	validation := form.Validation()
+	if validation == nil {
+		return ""
+	}
+
+	msg := validation.FieldMsg(field)
+	if msg == "" {
+		return ""
+	}
+
+	class := fieldErrClass
+	if len(classes) > 0 && classes[0] != "" {
+		class = classes[0]
+	}
+
+	return template.HTML(`<p class="` + template.HTMLEscapeString(class) + `">` + template.HTMLEscapeString(msg) + `</p>`)
 }

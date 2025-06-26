@@ -77,10 +77,10 @@ func (v Validation) FieldMsg(field string) string {
 // Validator is a function type that performs validation on any input.
 type Validator func(v any) (Validation, error)
 
-// ComposeValidators2 allows combining multiple Validator functions into one.
+// ComposeValidators allows combining multiple Validator functions into one.
 // By default, it will collect all validation errors.
 // If strict is true, it will stop after the first error.
-func ComposeValidators2(fns ...Validator) Validator {
+func ComposeValidators(fns ...Validator) Validator {
 	return func(v any) (Validation, error) {
 		out := Validation{}
 		for _, fn := range fns {
@@ -98,34 +98,6 @@ func ComposeValidators2(fns ...Validator) Validator {
 				}
 			}
 		}
-		return out, nil
-	}
-}
-
-// ComposeValidators allows combining multiple Validator functions into one.
-// By default, it will collect all validation errors.
-// If strict is true, it will stop after the first error.
-func ComposeValidators(fns ...Validator) Validator {
-	return func(v any) (Validation, error) {
-		out := Validation{}
-		for i, fn := range fns {
-			res, err := fn(v)
-			if err != nil {
-				fmt.Printf("[ComposeValidators] Validator %d returned error: %v\n", i, err)
-				return out, err
-			}
-			fmt.Printf("[ComposeValidators] Validator %d result: errors=%v, fields=%v\n", i, res.Errors, res.Fields)
-			out.Errors = append(out.Errors, res.Errors...)
-			if res.Fields != nil {
-				if out.Fields == nil {
-					out.Fields = make(map[string]ValidationField)
-				}
-				for k, field := range res.Fields {
-					out.Fields[k] = field
-				}
-			}
-		}
-		fmt.Printf("[ComposeValidators] Final validation: errors=%v, fields=%v\n", out.Errors, out.Fields)
 		return out, nil
 	}
 }
