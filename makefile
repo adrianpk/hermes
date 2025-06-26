@@ -4,7 +4,7 @@ BUILD_DIR = build
 SRC_DIR = .
 MAIN_SRC = $(SRC_DIR)/main.go
 BINARY = $(BUILD_DIR)/$(APP_NAME)
-DB_FILE = auth.db
+DB_FILE = hermes.db
 DB_BACKUP_DIR = bak
 
 # Helper function to backup database with timestamp

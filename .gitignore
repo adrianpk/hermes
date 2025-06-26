@@ -1,7 +1,7 @@
 build/
 main
-/auth.db
-/auth.db*
+/hermes.db
+/hermes.db*
 /bak/
 /tmp/
 __debug_bin*
