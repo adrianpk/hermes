@@ -58,7 +58,7 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = form.Validate()
-	if err != nil || !form.Validation().IsValid() {
+	if err != nil || form.HasErrors() {
 		h.renderNewContent(w, r, form, "Validation failed", http.StatusBadRequest)
 		return
 	}

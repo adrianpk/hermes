@@ -199,10 +199,6 @@ func FieldMsg(form Form, field string, classes ...string) template.HTML {
 	}
 
 	validation := form.Validation()
-	if validation == nil {
-		return ""
-	}
-
 	msg := validation.FieldMsg(field)
 	if msg == "" {
 		return ""
