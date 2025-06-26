@@ -49,6 +49,13 @@ type Flash struct {
 	Notifications []Notification
 }
 
+// NewFlash creates a new Flash instance
+func NewFlash() Flash {
+	return Flash{
+		Notifications: []Notification{},
+	}
+}
+
 // Add adds a new notification to the flash messages
 func (f *Flash) Add(typ, msg string) {
 	f.Notifications = append(f.Notifications, Notification{
