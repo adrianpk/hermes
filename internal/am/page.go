@@ -30,14 +30,10 @@ type Feat struct {
 // NewPage creates a new Page with the given data.
 func NewPage[T any](r *http.Request, data interface{}) *Page[T] {
 	return &Page[T]{
-		Data: data,
-		Flash: Flash{
-			Notifications: []Notification{},
-		},
-		Form: NewBaseForm(r),
-		Menu: &Menu{
-			Items: []MenuItem{},
-		},
+		Form:  NewBaseForm(r),
+		Data:  data,
+		Flash: NewFlash(),
+		Menu:  NewMenu("/"),
 	}
 }
 
