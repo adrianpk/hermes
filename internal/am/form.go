@@ -25,7 +25,8 @@ type Form interface {
 	SetSubmitButtonStyle(style string)
 	GenCSRFToken(r *http.Request)
 	SetValidation(validation *Validation)
-	Validation() *Validation
+	Validation() Validation
+	HasErrors() bool
 }
 
 // BaseForm struct represents a form with action, method, csrf token, and a button.
@@ -73,8 +74,11 @@ func (f *BaseForm) GenCSRFToken(r *http.Request) {
 func (f *BaseForm) SetValidation(validation *Validation) {
 	f.validation = validation
 }
-func (f *BaseForm) Validation() *Validation {
-	return f.validation
+func (f *BaseForm) Validation() Validation {
+	return *f.validation
+}
+func (f *BaseForm) HasErrors() bool {
+	return !f.Validation().IsValid()
 }
 
 // Button struct represents a button with text and style.
