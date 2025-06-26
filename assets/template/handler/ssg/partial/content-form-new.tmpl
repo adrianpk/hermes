@@ -1,26 +1,23 @@
 {{ define "content-form-new" }}
 {{ $form := .Form }}
+{{ $headingField := "heading" }}
+{{ $bodyField := "body" }}
 <form action="{{ $form.Action }}" method="post" class="space-y-4">
   <input type="hidden" name="_method" value="{{ $form.Method }}" />
   <input type="hidden" name="aquamarine.csrf.token" value="{{ $form.CSRF }}" />
   <input type="hidden" name="id" value="{{ .Data.ID }}" />
   <div>
-    <label for="heading" class="block text-sm font-medium text-gray-700">
+    <label for="{{$headingField}}" class="block text-sm font-medium text-gray-700">
       Heading:
     </label>
     <input
       type="text"
-      id="heading"
-      name="heading"
+      id="{{$headingField}}"
+      name="{{$headingField}}"
       value="{{ .Data.Heading }}"
       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
     />
-    {{ with $form.Validation }}
-      {{ $msg := .FieldMsg "heading" }}
-      {{ if $msg }}
-        <p class="text-red-600 text-sm mt-1">{{ $msg }}</p>
-      {{ end }}
-    {{ end }}
+    {{ FieldMsg $form $headingField }}
   </div>
   <!-- WIP: Using marked.js and github-markdown-css from CDN and configured inline for now. This will be improved later. -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
@@ -47,19 +44,14 @@
   </style>
   <div class="flex w-full" style="min-height: 300px;">
     <div id="markdown-pane" class="w-1/2 pr-2 flex flex-col">
-      <label for="body" class="block text-sm font-medium text-gray-700">Markdown:</label>
+      <label for="{{$bodyField}}" class="block text-sm font-medium text-gray-700">Markdown:</label>
       <textarea
-        id="body"
-        name="body"
+        id="{{$bodyField}}"
+        name="{{$bodyField}}"
         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm flex-1"
         rows="16"
       >{{ .Data.Body }}</textarea>
-      {{ with $form.Validation }}
-        {{ $msg := .FieldMsg "body" }}
-        {{ if $msg }}
-          <p class="text-red-600 text-sm mt-1">{{ $msg }}</p>
-        {{ end }}
-      {{ end }}
+      {{ FieldMsg $form $bodyField }}
     </div>
     <div id="splitter" style="width: 6px; cursor: col-resize; background: #e5e7eb; border-radius: 3px; margin: 0 2px;"></div>
     <div id="preview-pane" class="w-1/2 pl-2 flex flex-col">
