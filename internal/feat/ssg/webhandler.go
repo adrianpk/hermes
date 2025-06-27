@@ -23,29 +23,21 @@ const (
 )
 
 type WebHandler struct {
-	*am.Handler
+	*am.WebHandler
 	service Service
-	tm      *am.TemplateManager
-	flash   *am.FlashManager
 }
 
 func NewWebHandler(tm *am.TemplateManager, flash *am.FlashManager, service Service, options ...am.Option) *WebHandler {
-	handler := am.NewHandler("web-handler", options...)
+	handler := am.NewWebHandler(tm, flash, options...)
 	return &WebHandler{
-		Handler: handler,
-		service: service,
-		tm:      tm,
-		flash:   flash,
+		WebHandler: handler,
+		service:    service,
 	}
 }
 
 func (h *WebHandler) NewContent(w http.ResponseWriter, r *http.Request) {
 	h.Log().Info("New content form")
-
-	form := ContentForm{
-		BaseForm: am.NewBaseForm(r),
-	}
-
+	form := NewContentForm(r)
 	h.newContent(w, r, form, "", http.StatusOK)
 }
 
@@ -65,7 +57,6 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// NOTE: This will come from the session in the future.
 	user := h.sampleUserInSession(r)
 	content := NewContent(form.Heading, form.Body)
 	content.UserID = user.ID()
@@ -77,16 +68,22 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.Info(w, r, "Content created")
+
 	path := am.ListPath(ssgPath, contentPath)
-	http.Redirect(w, r, path, http.StatusSeeOther)
+	path = "new-content"
+
+	h.Redir(w, r, path, http.StatusSeeOther)
 }
 
 func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form ContentForm, errorMessage string, statusCode int) {
-	h.Log().Info("Rendering new content page with errors")
-
 	content := NewContent(form.Heading, form.Body)
 
-	page := am.NewPage[Content](r, content)
+	// NOTE: This is just to test flash messages in GET requests.
+	// Can be deleted later.
+	h.Info(w, r, "This is a test info flash message")
+
+	page := am.NewPage(r, content)
 	page.SetForm(form)
 	page.Form.SetAction(am.CreatePath(ssgPath, contentPath))
 	page.Form.SetSubmitButtonText("Create")
@@ -94,11 +91,14 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(content)
 
-	tmpl, err := h.tm.Get("ssg", "new-content")
+	tmpl, err := h.Tmpl().Get("ssg", "new-content")
 	if err != nil {
 		h.Err(w, err, am.ErrTemplateNotFound, http.StatusInternalServerError)
 		return
 	}
+
+	flash := h.Flash().GetFlash(r)
+	page.SetFlash(flash)
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, page)
@@ -107,11 +107,7 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 		return
 	}
 
-	w.WriteHeader(statusCode)
-	_, err = buf.WriteTo(w)
-	if err != nil {
-		h.Err(w, err, am.ErrCannotWriteResponse, http.StatusInternalServerError)
-	}
+	h.OK(w, r, &buf, statusCode)
 }
 
 // sampleUserInSession returns a fake user for now.

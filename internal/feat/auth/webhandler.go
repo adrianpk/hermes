@@ -62,31 +62,15 @@ func NewWebHandler(tm *am.TemplateManager, flash *am.FlashManager, service Servi
 // for the flash message system that is now being properly implemented in the am package.
 // After the am.FlashManager is fully functional, these functions will be removed.
 
+// Remove legacy AddFlash and SetFlash usage
 func (h *WebHandler) AddFlash(w http.ResponseWriter, r *http.Request, notificationType string, msg string) error {
-	flash := GetFlash(r)
-	flash.Add(notificationType, msg)
-	return h.flash.SetFlash(w, flash)
+	// Legacy method, now a no-op for compatibility
+	return nil
 }
 
-// WIP:
-func (h *WebHandler) GetFlash(r *http.Request) am.Flash {
-	return GetFlash(r)
-}
-
-func (h *WebHandler) AddInfoFlash(w http.ResponseWriter, r *http.Request, msg string) error {
-	return h.AddFlash(w, r, am.NotificationType.Info, msg)
-}
-
-func (h *WebHandler) AddSuccessFlash(w http.ResponseWriter, r *http.Request, msg string) error {
-	return h.AddFlash(w, r, am.NotificationType.Success, msg)
-}
-
-func (h *WebHandler) AddWarningFlash(w http.ResponseWriter, r *http.Request, msg string) error {
-	return h.AddFlash(w, r, am.NotificationType.Warn, msg)
-}
-
-func (h *WebHandler) AddErrorFlash(w http.ResponseWriter, r *http.Request, msg string) error {
-	return h.AddFlash(w, r, am.NotificationType.Error, msg)
+// Disabled direct SetFlash call, now a no-op for compatibility with template
+func (h *WebHandler) SetFlash(w http.ResponseWriter, flash am.Flash) error {
+	return nil
 }
 
 func (h *WebHandler) GetUser(w http.ResponseWriter, r *http.Request) {
