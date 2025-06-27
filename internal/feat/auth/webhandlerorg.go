@@ -25,7 +25,7 @@ func (h *WebHandler) ShowOrg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		Org    Org
 		Owners []User
 	}{
@@ -84,7 +84,7 @@ func (h *WebHandler) ListOrgOwners(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		Org        Org
 		Owners     []User
 		Unassigned []User

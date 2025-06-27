@@ -1,6 +1,6 @@
 package auth
 
-// Error messages specific to auth domain
+// FlashError messages specific to auth domain
 const (
 	ErrInvalidUserID          = "Invalid user ID"
 	ErrInvalidRoleID          = "Invalid role ID"
