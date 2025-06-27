@@ -12,6 +12,12 @@ type ContentForm struct {
 	Body    string `form:"body"`
 }
 
+func NewContentForm(r *http.Request) ContentForm {
+	return ContentForm{
+		BaseForm: am.NewBaseForm(r),
+	}
+}
+
 func ContentFormFromRequest(r *http.Request) (cf ContentForm, err error) {
 	err = r.ParseForm()
 	if err != nil {

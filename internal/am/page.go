@@ -8,13 +8,12 @@ import (
 	"github.com/gorilla/csrf"
 )
 
-// Page struct represents a web page with data, flash messages, form, menu, and feature information.
-// Page is a generic struct that can carry a single entity (Entity) and a collection of entities (Entities).
-type Page[T any] struct {
+// Page struct represents a web page with data, fm messages, form, menu, and feature information.
+type Page struct {
 	Form     Form
-	Entity   T           // Single entity instance of any type
-	Entities []T         // Collection of entities of the same type
-	Data     interface{} // For any additional or wrapper data
+	Entity   any   // Single entity instance of any type
+	Entities []any // Collection of entities of any type
+	Data     any   // For any additional or wrapper data
 	Flash    Flash
 	Menu     *Menu
 	Feat     Feat
@@ -28,47 +27,48 @@ type Feat struct {
 }
 
 // NewPage creates a new Page with the given data.
-func NewPage[T any](r *http.Request, data interface{}) *Page[T] {
-	return &Page[T]{
+func NewPage(r *http.Request, data interface{}) *Page {
+	flash, _ := r.Context().Value(FlashKey).(Flash)
+	return &Page{
 		Form:  NewBaseForm(r),
 		Data:  data,
-		Flash: NewFlash(),
+		Flash: flash,
 		Menu:  NewMenu("/"),
 	}
 }
 
 // SetForm sets the entire Form for the page.
-func (p *Page[T]) SetForm(form Form) {
+func (p *Page) SetForm(form Form) {
 	p.Form = form
 }
 
 // SetData sets the Data property for the page.
-func (p *Page[T]) SetData(data interface{}) {
+func (p *Page) SetData(data interface{}) {
 	p.Data = data
 }
 
-// SetFlash sets the flash message for the page.
-func (p *Page[T]) SetFlash(flash Flash) {
+// SetFlash sets the fm message for the page.
+func (p *Page) SetFlash(flash Flash) {
 	p.Flash = flash
 }
 
 // SetFeat sets the Feat struct for the page.
-func (p *Page[T]) SetFeat(feat Feat) {
+func (p *Page) SetFeat(feat Feat) {
 	p.Feat = feat
 }
 
 // SetMenuItems sets the menu items for the page.
-func (p *Page[T]) SetMenuItems(items []MenuItem) {
+func (p *Page) SetMenuItems(items []MenuItem) {
 	p.Menu.Items = items
 }
 
 // GenCSRFToken generates a csrf token and sets it in the form.
-func (p *Page[T]) GenCSRFToken(r *http.Request) {
+func (p *Page) GenCSRFToken(r *http.Request) {
 	p.Form.SetCSRF(csrf.Token(r))
 }
 
 // Path generates the href path for a menu item based on the feature and menu item data.
-func (p *Page[T]) Path(feat Feat, item MenuItem) string {
+func (p *Page) Path(feat Feat, item MenuItem) string {
 	basePath := path.Join(feat.Path, feat.Action)
 
 	if len(item.QueryParams) == 0 {
@@ -85,7 +85,7 @@ func (p *Page[T]) Path(feat Feat, item MenuItem) string {
 
 // NewMenu returns a new menu associated with this page, configured with the
 // given path
-func (p *Page[T]) NewMenu(path string) *Menu {
+func (p *Page) NewMenu(path string) *Menu {
 	menu := NewMenu(path)
 	p.Menu = menu
 	return menu

@@ -1,9 +1,11 @@
 package am
 
 import (
+	"context"
 	"net/http"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 )
 
@@ -56,4 +58,27 @@ func initCSRF(cfg *Config) {
 			})),
 		)
 	})
+}
+
+// ReqIDKey is the context key for the request ID.
+const ReqIDKey = "requestID"
+
+// RequestIDMw is a middleware that assigns a unique ID to each request and stores it in the context and as a header.
+func RequestIDMw(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := uuid.NewString()
+		ctx := context.WithValue(r.Context(), ReqIDKey, id)
+		w.Header().Set("X-Request-ID", id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// ReqID returns the request ID from the context, or an empty string if not set.
+func ReqID(r *http.Request) string {
+	if v := r.Context().Value(ReqIDKey); v != nil {
+		if id, ok := v.(string); ok {
+			return id
+		}
+	}
+	return ""
 }

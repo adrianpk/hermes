@@ -18,7 +18,7 @@ func (h *WebHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[User](r, users)
+	page := am.NewPage(r, users)
 	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
@@ -48,16 +48,9 @@ func (h *WebHandler) NewUser(w http.ResponseWriter, r *http.Request) {
 
 	user := NewUser("", "")
 
-	page := am.NewPage[User](r, user)
+	page := am.NewPage(r, user)
 	page.Form.SetAction(am.CreatePath(authPath, "user"))
 	page.Form.SetSubmitButtonText("Create")
-
-	authFlash := h.GetFlash(r)
-	amFlash := am.Flash{}
-	for _, n := range authFlash.Notifications {
-		amFlash.Add(string(n.Type), n.Msg)
-	}
-	page.SetFlash(amFlash)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(user)
@@ -142,7 +135,7 @@ func (h *WebHandler) ShowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[User](r, user)
+	page := am.NewPage(r, user)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(user)
@@ -185,7 +178,7 @@ func (h *WebHandler) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[User](r, &user)
+	page := am.NewPage(r, &user)
 	page.Form.SetAction(am.UpdatePath(authPath, "user"))
 	page.Form.SetSubmitButtonText("Update")
 
@@ -304,7 +297,7 @@ func (h *WebHandler) ListUserRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		User            User
 		AssignedRoles   []Role
 		UnassignedRoles []Role
@@ -372,7 +365,7 @@ func (h *WebHandler) ListUserPermissions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		User                  User
 		PermissionsFromRoles  []Permission
 		DirectPermissions     []Permission

@@ -113,7 +113,7 @@ func (a *App) Dep(name string) (*Dep, bool) {
 func (a *App) Setup(ctx context.Context) error {
 	var errs []string
 
-	// Debug the content of deps
+	// FlashDebug the content of deps
 	a.depsMutex.Lock()
 	order := make([]string, len(a.depOrder))
 	copy(order, a.depOrder)
