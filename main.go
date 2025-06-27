@@ -29,8 +29,7 @@ func main() {
 	cfg := am.LoadCfg(namespace, am.Flags)
 	opts := am.DefOpts(log, cfg)
 
-	flashManager := am.NewFlashManager()
-	opts = append(opts, am.WithFlashMiddleware(flashManager))
+	fm := am.NewFlashManager()
 
 	app := core.NewApp(name, version, assetsFS, opts...)
 
@@ -46,7 +45,7 @@ func main() {
 
 	// Auth feature
 	authService := auth.NewService(repo)
-	authWebHandler := auth.NewWebHandler(templateManager, flashManager, authService)
+	authWebHandler := auth.NewWebHandler(templateManager, fm, authService)
 	authWebRouter := auth.NewWebRouter(authWebHandler)
 	authSeeder := auth.NewSeeder(assetsFS, engine, repo)
 
@@ -54,14 +53,14 @@ func main() {
 
 	// SSG feature
 	ssgService := ssg.NewService(repo)
-	ssgWebHandler := ssg.NewWebHandler(templateManager, flashManager, ssgService)
-	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler)
+	ssgWebHandler := ssg.NewWebHandler(templateManager, fm, ssgService)
+	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, fm.Middlewares())
 	app.MountWeb("/ssg", ssgWebRouter)
 
 	// Add deps
 	app.Add(migrator)
 	app.Add(seeder)
-	app.Add(flashManager)
+	app.Add(fm)
 	app.Add(fileServer)
 	app.Add(queryManager)
 	app.Add(templateManager)
@@ -80,8 +79,8 @@ func main() {
 		return
 	}
 
-	// templateManager.Debug()
-	// queryManager.Debug()
+	// templateManager.FlashDebug()
+	// queryManager.FlashDebug()
 
 	err = app.Start(ctx)
 	if err != nil {

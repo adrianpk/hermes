@@ -4,8 +4,9 @@ import (
 	"github.com/adrianpk/hermes/internal/am"
 )
 
-func NewWebRouter(handler *WebHandler, opts ...am.Option) *am.Router {
-	core := am.NewRouter("web-router", opts...)
+func NewWebRouter(handler *WebHandler, mw []am.Middleware, opts ...am.Option) *am.Router {
+	core := am.NewWebRouter("web-router", opts...)
+	core.SetMiddlewares(mw)
 
 	// Content routes
 	core.Get("/new-content", handler.NewContent)

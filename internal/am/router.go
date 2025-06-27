@@ -11,15 +11,13 @@ type Router struct {
 	chi.Router
 }
 
+type Middleware func(http.Handler) http.Handler
+
 func NewRouter(name string, opts ...Option) *Router {
 	core := NewCore(name, opts...)
 	router := &Router{
 		Core:   core,
 		Router: chi.NewRouter(),
-	}
-
-	for _, opt := range opts {
-		opt(router)
 	}
 
 	return router
@@ -34,14 +32,11 @@ func NewWebRouter(name string, opts ...Option) *Router {
 	}
 
 	cfg := core.Cfg()
-	//hashKey := cfg.ByteSliceVal(Key.SecHashKey)
 	csrf := CSRFMw(cfg)
 
 	r.Use(MethodOverrideMw)
+	r.Use(RequestIDMw)
 	r.Use(csrf)
-
-	//flash := NewFlashMiddleware(hashKey)
-	//r.Use(flash.Middleware)
 
 	return r
 }
@@ -62,9 +57,15 @@ func NewAPIRouter(name string, opts ...Option) *Router {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			r.Log().Error("Error serving request: ", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			r.Log().Error("FlashError serving request: ", err)
+			http.Error(w, "Internal Server FlashError", http.StatusInternalServerError)
 		}
 	}()
 	r.Router.ServeHTTP(w, req)
+}
+
+func (r *Router) SetMiddlewares(mws []Middleware) {
+	for _, mw := range mws {
+		r.Use(mw)
+	}
 }

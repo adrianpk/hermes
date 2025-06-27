@@ -20,7 +20,7 @@ func (h *WebHandler) ListPermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Permission](r, permissions)
+	page := am.NewPage(r, permissions)
 	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
@@ -50,7 +50,7 @@ func (h *WebHandler) NewPermission(w http.ResponseWriter, r *http.Request) {
 
 	permission := NewPermission("", "")
 
-	page := am.NewPage[Permission](r, permission)
+	page := am.NewPage(r, permission)
 	page.Form.SetAction(am.CreatePath(authPath, "permission"))
 	page.Form.SetSubmitButtonText("Create")
 
@@ -109,7 +109,7 @@ func (h *WebHandler) ShowPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Permission](r, permission)
+	page := am.NewPage(r, permission)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(permission)
@@ -150,7 +150,7 @@ func (h *WebHandler) EditPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Permission](r, permission)
+	page := am.NewPage(r, permission)
 	page.Form.SetAction(am.UpdatePath(authPath, "permission"))
 	page.Form.SetSubmitButtonText("Update")
 

@@ -3,25 +3,20 @@ package am
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/securecookie"
 )
 
-// FlashCtxKey is a custom type for context keys
 type FlashCtxKey string
 
 const (
-	// FlashKey is the key used to store flash messages in the context
-	FlashKey FlashCtxKey = "aqmflash"
-
-	// FlashCookieName is the name of the cookie used to store flash messages
-	FlashCookieName string = "aqmflash"
+	FlashKey        FlashCtxKey = "aqmflash"
+	FlashCookieName string      = "aqmflash"
 )
 
-// NotificationTypes defines the types of notifications
-type NotificationTypes struct {
+type notificationTypes struct {
 	Success string
 	Info    string
 	Warn    string
@@ -29,8 +24,7 @@ type NotificationTypes struct {
 	Debug   string
 }
 
-// NotificationType holds the default notification types
-var NotificationType = NotificationTypes{
+var NotificationType = notificationTypes{
 	Success: "success",
 	Info:    "info",
 	Warn:    "warning",
@@ -38,25 +32,21 @@ var NotificationType = NotificationTypes{
 	Debug:   "debug",
 }
 
-// Notification represents a single notification message
 type Notification struct {
 	Type string
 	Msg  string
 }
 
-// Flash is a container for notifications
 type Flash struct {
 	Notifications []Notification
 }
 
-// NewFlash creates a new Flash instance
 func NewFlash() Flash {
 	return Flash{
 		Notifications: []Notification{},
 	}
 }
 
-// Add adds a new notification to the flash messages
 func (f *Flash) Add(typ, msg string) {
 	f.Notifications = append(f.Notifications, Notification{
 		Type: typ,
@@ -64,34 +54,27 @@ func (f *Flash) Add(typ, msg string) {
 	})
 }
 
-// Clear clears all notifications
 func (f *Flash) Clear() {
 	f.Notifications = []Notification{}
 }
 
-// HasMessages returns true if there are any notifications
 func (f *Flash) HasMessages() bool {
 	return len(f.Notifications) > 0
 }
 
-// FlashManager handles the storage and retrieval of flash messages using secure cookies.
-// WIP: This is a work in progress. The flash message system is still not available
-// to deliver notifications. Some tweaking is still needed to properly handle
-// flash messages across requests.
 type FlashManager struct {
 	Core
 	encoder *securecookie.SecureCookie
+	flashes sync.Map
 }
 
-// NewFlashManager creates a new FlashManager instance
 func NewFlashManager(opts ...Option) *FlashManager {
-	core := NewCore("flash-manager", opts...)
+	core := NewCore("fm-manager", opts...)
 	return &FlashManager{
 		Core: core,
 	}
 }
 
-// Setup initializes the FlashManager with configuration values
 func (fm *FlashManager) Setup(ctx context.Context) error {
 	err := fm.Core.Setup(ctx)
 	if err != nil {
@@ -111,28 +94,14 @@ func (fm *FlashManager) Setup(ctx context.Context) error {
 	return nil
 }
 
-func (fm *FlashManager) GetFlash(r *http.Request) (f Flash, err error) {
-	cookie, err := r.Cookie(FlashCookieName)
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-			return f, nil // No flash messages
-		}
-
-		return f, err
+func (fm *FlashManager) SetFlashInCookie(w http.ResponseWriter, flash Flash) {
+	if fm.encoder == nil {
+		return
 	}
 
-	err = fm.encoder.Decode(FlashCookieName, cookie.Value, &f)
-	if err != nil {
-		return f, fmt.Errorf("cannot decode flash messages: %w", err)
-	}
-
-	return f, nil
-}
-
-func (fm *FlashManager) SetFlash(w http.ResponseWriter, flash Flash) error {
 	encoded, err := fm.encoder.Encode(FlashCookieName, flash)
 	if err != nil {
-		return fmt.Errorf("cannot encode flash messages: %w", err)
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -140,81 +109,108 @@ func (fm *FlashManager) SetFlash(w http.ResponseWriter, flash Flash) error {
 		Value:    encoded,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 	})
-
-	return nil
 }
 
-func (fm *FlashManager) AddFlash(w http.ResponseWriter, r *http.Request, typ, msg string) error {
-	flash, err := fm.GetFlash(r)
-	if err != nil {
-		return fmt.Errorf("cannot retrieve flash messages: %w", err)
+func (fm *FlashManager) GetFlashFromCookie(r *http.Request) Flash {
+	if fm.encoder == nil {
+		return NewFlash()
 	}
-
-	flash.Add(typ, msg)
-
-	return fm.SetFlash(w, flash)
+	cookie, err := r.Cookie(FlashCookieName)
+	if err != nil {
+		return NewFlash()
+	}
+	var flash Flash
+	err = fm.encoder.Decode(FlashCookieName, cookie.Value, &flash)
+	if err != nil {
+		return NewFlash()
+	}
+	return flash
 }
 
-func (fm *FlashManager) ClearFlash(w http.ResponseWriter) {
+func (fm *FlashManager) ClearFlashCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     FlashCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 	})
 }
 
-// responseWriter is a wrapper to capture flash messages during the request lifecycle
+func (fm *FlashManager) SaveFlash(r *http.Request, flash Flash) {
+	key := ReqID(r)
+	fm.flashes.Store(key, flash)
+}
+
+func (fm *FlashManager) GetFlash(r *http.Request) Flash {
+	key := ReqID(r)
+	if v, ok := fm.flashes.Load(key); ok {
+		return v.(Flash)
+	}
+	return NewFlash()
+}
+
+func (fm *FlashManager) ClearFlash(w http.ResponseWriter, r *http.Request) {
+	key := ReqID(r)
+	fm.flashes.Delete(key)
+	fm.ClearFlashCookie(w)
+}
+
+func (fm *FlashManager) AddFlash(r *http.Request, typ, msg string) {
+	flash := fm.GetFlash(r)
+	flash.Add(typ, msg)
+	fm.SaveFlash(r, flash)
+}
+
+func (fm *FlashManager) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		flash := fm.GetFlashFromCookie(r)
+		fm.SaveFlash(r, flash)
+		defer fm.ClearFlash(w, r)
+		next.ServeHTTP(w, r)
+	})
+}
+
+type flashResponseWriter struct {
+	http.ResponseWriter
+	wroteHeader bool
+}
+
+func (w *flashResponseWriter) WriteHeader(statusCode int) {
+	w.wroteHeader = true
+	w.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (w *flashResponseWriter) Write(b []byte) (int, error) {
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(b)
+}
+
 type responseWriter struct {
 	http.ResponseWriter
 	flash         Flash
 	flashModified bool
 }
 
-// WriteHeader overrides the default WriteHeader to track modifications
 func (rw *responseWriter) WriteHeader(statusCode int) {
 	rw.flashModified = true
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
-// AddFlash adds a flash message to the responseWriter
 func (rw *responseWriter) AddFlash(typ, msg string) {
 	rw.flash.Add(typ, msg)
 	rw.flashModified = true
 }
 
-// GetFlash retrieves the flash messages
 func (rw *responseWriter) GetFlash() Flash {
 	return rw.flash
 }
 
-// Middleware is a middleware function that handles flash messages
-func (fm *FlashManager) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		flash, _ := fm.GetFlash(r)
-
-		ctx := context.WithValue(r.Context(), FlashKey, flash)
-		r = r.WithContext(ctx)
-
-		ww := &responseWriter{ResponseWriter: w, flash: flash}
-
-		next.ServeHTTP(ww, r)
-
-		if !ww.flashModified {
-			fm.ClearFlash(w)
-		}
-	})
-}
-
-// WithFlashMiddleware adds the FlashManager's middleware to the router.
-func WithFlashMiddleware(fm *FlashManager) Option {
-	return func(c Core) {
-		if router, ok := c.(*Router); ok {
-			router.Use(fm.Middleware)
-		}
-	}
+func (fm *FlashManager) Middlewares() []Middleware {
+	return []Middleware{fm.Middleware}
 }

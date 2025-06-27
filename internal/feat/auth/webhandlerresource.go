@@ -20,7 +20,7 @@ func (h *WebHandler) ListResources(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Resource](r, resources)
+	page := am.NewPage(r, resources)
 	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
@@ -50,7 +50,7 @@ func (h *WebHandler) NewResource(w http.ResponseWriter, r *http.Request) {
 
 	resource := NewResource("", "", "entity")
 
-	page := am.NewPage[Resource](r, resource)
+	page := am.NewPage(r, resource)
 	page.Form.SetAction(am.CreatePath(authPath, "resource"))
 	page.Form.SetSubmitButtonText("Create")
 
@@ -117,7 +117,7 @@ func (h *WebHandler) ShowResource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Resource](r, resource)
+	page := am.NewPage(r, resource)
 
 	menu := page.NewMenu(authPath)
 
@@ -160,7 +160,7 @@ func (h *WebHandler) EditResource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Resource](r, resource)
+	page := am.NewPage(r, resource)
 	page.Form.SetAction(am.UpdatePath(authPath, "resource"))
 
 	menu := page.NewMenu(authPath)
@@ -269,7 +269,7 @@ func (h *WebHandler) ListResourcePermissions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	page := am.NewPage[Resource](r, struct {
+	page := am.NewPage(r, struct {
 		ID                   uuid.UUID
 		Name                 string
 		Description          string

@@ -20,7 +20,7 @@ func (h *WebHandler) ListRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Role](r, roles)
+	page := am.NewPage(r, roles)
 	page.Form.SetAction(authPath)
 
 	menu := page.NewMenu(authPath)
@@ -50,7 +50,7 @@ func (h *WebHandler) NewRole(w http.ResponseWriter, r *http.Request) {
 
 	role := NewRole("", "", "active")
 
-	page := am.NewPage[Role](r, role)
+	page := am.NewPage(r, role)
 	page.Form.SetAction(am.CreatePath(authPath, rolePath))
 	page.Form.SetSubmitButtonText("Create")
 
@@ -120,7 +120,7 @@ func (h *WebHandler) ShowRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Role](r, role)
+	page := am.NewPage(r, role)
 
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(role)
@@ -162,7 +162,7 @@ func (h *WebHandler) EditRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := am.NewPage[Role](r, role)
+	page := am.NewPage(r, role)
 	page.Form.SetAction(am.UpdatePath(authPath, rolePath))
 	page.Form.SetSubmitButtonText("Update")
 
@@ -273,7 +273,7 @@ func (h *WebHandler) ListRolePermissions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		ID                   uuid.UUID
 		Name                 string
 		Description          string
@@ -416,7 +416,7 @@ func (h *WebHandler) ListUserContextualRoles(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	page := am.NewPage[any](r, struct {
+	page := am.NewPage(r, struct {
 		User            User
 		Team            Team
 		AssignedRoles   []Role
