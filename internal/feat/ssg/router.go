@@ -16,6 +16,9 @@ func NewWebRouter(handler *WebHandler, mw []am.Middleware, opts ...am.Option) *a
 	// core.Post("/update-content", handler.UpdateContent)
 	// core.Get("/list-contents", handler.ListContents)
 	// core.Post("/delete-content", handler.DeleteContent)
+	// Section routes
+	core.Get("/new-section", handler.NewSection)
+	core.Post("/create-section", handler.CreateSection)
 
 	return core
 }
