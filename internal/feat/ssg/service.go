@@ -12,6 +12,7 @@ type Service interface {
 	// UpdateContent(ctx context.Context, content Content) error
 	// GetAllContent(ctx context.Context) ([]Content, error)
 	// DeleteContent(ctx context.Context, id uuid.UUID) error
+	CreateSection(ctx context.Context, section Section) error
 }
 
 var (
@@ -30,7 +31,13 @@ func NewService(repo Repo) *BaseService {
 	}
 }
 
-func (svc *BaseService) CreateContent(ctx context.Context, role Content) error {
-	return svc.repo.CreateContent(ctx, role)
+// Content related
+
+func (svc *BaseService) CreateContent(ctx context.Context, content Content) error {
+	return svc.repo.CreateContent(ctx, content)
 }
 
+// Section related
+func (svc *BaseService) CreateSection(ctx context.Context, section Section) error {
+	return svc.repo.CreateSection(ctx, section)
+}
