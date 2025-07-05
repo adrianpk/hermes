@@ -9,10 +9,11 @@ import (
 type Repo interface {
 	am.Repo
 
-	CreateContent(ctx context.Context, role Content) error
-	// GetContent(ctx context.Context, roleID uuid.UUID, preload ...bool) (Content, error)
-	// UpdateContent(ctx context.Context, role Content) error
+	CreateContent(ctx context.Context, content Content) error
+	// GetContent(ctx context.Context, contentID uuid.UUID, preload ...bool) (Content, error)
+	// UpdateContent(ctx context.Context, content Content) error
 	// GetAllContent(ctx context.Context) ([]Content, error)
-	// DeleteContent(ctx context.Context, roleID uuid.UUID) error
+	// DeleteContent(ctx context.Context, contentID uuid.UUID) error
+	CreateSection(ctx context.Context, section Section) error
 }
 

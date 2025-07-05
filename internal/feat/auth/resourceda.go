@@ -30,8 +30,8 @@ func toResource(da ResourceDA) Resource {
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
 			am.WithType(resourceEntityType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),

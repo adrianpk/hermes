@@ -6,8 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// ParseUUID safely parses a UUID string
-func ParseUUID(s sql.NullString) uuid.UUID {
+func ParseUUID(s string) uuid.UUID {
+	u, err := uuid.Parse(s)
+	if err != nil {
+		return uuid.Nil
+	}
+	return u
+}
+
+func ParseUUIDNull(s sql.NullString) uuid.UUID {
 	if s.Valid {
 		u, err := uuid.Parse(s.String)
 		if err != nil {

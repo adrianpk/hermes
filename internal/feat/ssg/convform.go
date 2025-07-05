@@ -1,6 +1,9 @@
 package ssg
 
-// ToContentForm converts a Content business object to a ContentForm.
+import "github.com/adrianpk/hermes/internal/am"
+
+// Content related
+
 func ToContentForm(content Content) ContentForm {
 	return ContentForm{
 		Heading: content.Heading,
@@ -8,8 +11,6 @@ func ToContentForm(content Content) ContentForm {
 	}
 }
 
-// ToContentFromForm creates a Content business object from a ContentForm.
-// Note: You may want to set additional fields (e.g., UserID, BaseModel) elsewhere.
 func ToContentFromForm(form ContentForm) Content {
 	return Content{
 		Heading: form.Heading,
@@ -17,3 +18,21 @@ func ToContentFromForm(form ContentForm) Content {
 	}
 }
 
+// Section related
+func ToSectionForm(section Section) SectionForm {
+	return SectionForm{
+		Name:        section.Name,
+		Description: section.Description,
+		Path:        section.Path,
+		LayoutID:    section.LayoutID.String(),
+	}
+}
+
+func ToSectionFromForm(form SectionForm) Section {
+	return Section{
+		Name:        form.Name,
+		Description: form.Description,
+		Path:        form.Path,
+		LayoutID:    am.ParseUUID(form.LayoutID),
+	}
+}

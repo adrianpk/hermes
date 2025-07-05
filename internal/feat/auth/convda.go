@@ -42,8 +42,8 @@ func ToUser(da UserDA) User {
 			am.WithID(da.ID),
 			am.WithShortID(da.ShortID.String), // Added this line
 			am.WithType(userType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
@@ -86,10 +86,10 @@ func ToUserExt(da UserExtDA) User {
 
 	// Add role if present
 	if da.RoleID.Valid {
-		user.RoleIDs = append(user.RoleIDs, am.ParseUUID(da.RoleID))
+		user.RoleIDs = append(user.RoleIDs, am.ParseUUIDNull(da.RoleID))
 		user.Roles = append(user.Roles, Role{
 			BaseModel: am.NewModel(
-				am.WithID(am.ParseUUID(da.RoleID)),
+				am.WithID(am.ParseUUIDNull(da.RoleID)),
 				am.WithType(roleType),
 			),
 			Name: da.RoleName.String,
@@ -98,10 +98,10 @@ func ToUserExt(da UserExtDA) User {
 
 	// Add permission if present
 	if da.PermissionID.Valid {
-		user.PermissionIDs = append(user.PermissionIDs, am.ParseUUID(da.PermissionID))
+		user.PermissionIDs = append(user.PermissionIDs, am.ParseUUIDNull(da.PermissionID))
 		user.Permissions = append(user.Permissions, Permission{
 			BaseModel: am.NewModel(
-				am.WithID(am.ParseUUID(da.PermissionID)),
+				am.WithID(am.ParseUUIDNull(da.PermissionID)),
 				am.WithType(permissionType),
 			),
 			Name: da.PermissionName.String,
@@ -134,8 +134,8 @@ func ToRole(da RoleDA) Role {
 			am.WithID(da.ID),
 			am.WithShortID(da.ShortID.String), // Added
 			am.WithType(roleType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
@@ -160,7 +160,7 @@ func ToRoles(das []RoleDA) []Role {
 func ToRoleExt(da RoleExtDA) Role {
 	permission := Permission{
 		BaseModel: am.NewModel(
-			am.WithID(am.ParseUUID(da.PermissionID)),
+			am.WithID(am.ParseUUIDNull(da.PermissionID)),
 			am.WithType(permissionType),
 		),
 		Name: da.PermissionName.String,
@@ -170,8 +170,8 @@ func ToRoleExt(da RoleExtDA) Role {
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
 			am.WithType(roleType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
@@ -203,8 +203,8 @@ func ToPermission(da PermissionDA) Permission {
 			am.WithID(da.ID),
 			am.WithShortID(da.ShortID.String), // Added
 			am.WithType(permissionType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
@@ -247,8 +247,8 @@ func ToResource(da ResourceDA) Resource {
 			am.WithID(da.ID),
 			am.WithShortID(da.ShortID.String), // Added
 			am.WithType(resourceEntityType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
@@ -275,7 +275,7 @@ func ToResources(das []ResourceDA) []Resource {
 func ToResourceExt(da ResourceExtDA) Resource {
 	permission := Permission{
 		BaseModel: am.NewModel(
-			am.WithID(am.ParseUUID(da.PermissionID)),
+			am.WithID(am.ParseUUIDNull(da.PermissionID)),
 			am.WithType(permissionType),
 		),
 		Name: da.PermissionName.String,
@@ -285,15 +285,15 @@ func ToResourceExt(da ResourceExtDA) Resource {
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
 			am.WithType(resourceEntityType),
-			am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
 		Name:          da.Name.String,
 		Description:   da.Description.String,
 		ResourceType:  "entity",
-		PermissionIDs: []uuid.UUID{am.ParseUUID(da.PermissionID)},
+		PermissionIDs: []uuid.UUID{am.ParseUUIDNull(da.PermissionID)},
 		Permissions:   []Permission{permission},
 	}
 }
@@ -314,10 +314,10 @@ type OrgDA struct {
 // ToOrg converts OrgDA to Org domain model.
 func ToOrg(da OrgDA) Org {
 	model := am.NewModel(
-		am.WithID(am.ParseUUID(da.ID)),
+		am.WithID(am.ParseUUIDNull(da.ID)),
 		am.WithShortID(da.ShortID), // Added (da.ShortID is string)
-		am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-		am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+		am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+		am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 		am.WithCreatedAt(da.CreatedAt),
 		am.WithUpdatedAt(da.UpdatedAt),
 		am.WithType(orgEntityType),
@@ -347,17 +347,17 @@ func ToOrgDA(org Org) OrgDA {
 
 func ToTeam(da TeamDA) Team {
 	model := am.NewModel(
-		am.WithID(am.ParseUUID(da.ID)),
+		am.WithID(am.ParseUUIDNull(da.ID)),
 		am.WithShortID(da.ShortID), // Corrected: da.ShortID is string, not sql.NullString
-		am.WithCreatedBy(am.ParseUUID(da.CreatedBy)),
-		am.WithUpdatedBy(am.ParseUUID(da.UpdatedBy)),
+		am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+		am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
 		am.WithCreatedAt(da.CreatedAt),
 		am.WithUpdatedAt(da.UpdatedAt),
 		am.WithType(teamEntityType),
 	)
 	return Team{
 		BaseModel:        model,
-		OrgID:            am.ParseUUID(da.OrgID),
+		OrgID:            am.ParseUUIDNull(da.OrgID),
 		Name:             da.Name,
 		ShortDescription: da.ShortDescription,
 		Description:      da.Description,
