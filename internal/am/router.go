@@ -57,8 +57,8 @@ func NewAPIRouter(name string, opts ...Option) *Router {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			r.Log().Error("FlashError serving request: ", err)
-			http.Error(w, "Internal Server FlashError", http.StatusInternalServerError)
+			r.Log().Error("Error serving request: ", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 	}()
 	r.Router.ServeHTTP(w, req)
