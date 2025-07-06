@@ -1,10 +1,12 @@
 package am
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 )
 
@@ -17,6 +19,7 @@ type Page struct {
 	Flash    Flash
 	Menu     *Menu
 	Feat     Feat
+	Selects  map[string][]SelectOption // For select/dropdown options and similar lists
 }
 
 // Feat struct represents a feature with base path, feature name, and action.
@@ -24,6 +27,12 @@ type Feat struct {
 	Path       string // The base path for the action (i.e. `/feat/auth`)
 	Action     string // Action name (command or query, i.e. `edit-user`)
 	PathSuffix string // The path suffix for the feature (i.e.: `/auth`)
+}
+
+// SelectOption struct represents an option for select/dropdown lists.
+type SelectOption struct {
+	Value string
+	Label string
 }
 
 // NewPage creates a new Page with the given data.
@@ -89,4 +98,73 @@ func (p *Page) NewMenu(path string) *Menu {
 	menu := NewMenu(path)
 	p.Menu = menu
 	return menu
+}
+
+// SetSelects sets multiple select option lists for selects/dropdowns.
+func (p *Page) SetSelects(selects map[string][]SelectOption) {
+	p.Selects = selects
+}
+
+// AddSelect adds or updates a single select option list for a select/dropdown.
+func (p *Page) AddSelect(key string, values []SelectOption) {
+	if p.Selects == nil {
+		p.Selects = make(map[string][]SelectOption)
+	}
+	p.Selects[key] = values
+}
+
+// GetSelects retrieves a select option list by key from the Selects map.
+func (p *Page) GetSelects(key string) []SelectOption {
+	if p.Selects == nil {
+		return nil
+	}
+	return p.Selects[key]
+}
+
+// ToAnySlice converts a slice of any type to a slice of any (for use in Page.Selects).
+func ToAnySlice[T any](in []T) []any {
+	out := make([]any, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
+// ToSelectOptions converts a slice of models (with ID() and Name fields) to []SelectOption.
+func ToSelectOptions[T interface {
+	ID() any
+	GetName() string
+}](in []T) []SelectOption {
+	out := make([]SelectOption, len(in))
+	for i, v := range in {
+		out[i] = SelectOption{
+			Value: fmt.Sprintf("%v", v.ID()),
+			Label: v.GetName(),
+		}
+	}
+	return out
+}
+
+// ToSelectOptionsWith extracts select options from a slice using custom value and label functions.
+func ToSelectOptionsWith[T any](in []T, valueFn func(T) string, labelFn func(T) string) []SelectOption {
+	out := make([]SelectOption, len(in))
+	for i, v := range in {
+		out[i] = SelectOption{
+			Value: valueFn(v),
+			Label: labelFn(v),
+		}
+	}
+	return out
+}
+
+// ToSelectOptionsWithID extracts select options from a slice using a custom label function. Value is always ID() as string.
+func ToSelectOptionsWithID[T interface{ ID() uuid.UUID }](in []T, labelFn func(T) string) []SelectOption {
+	out := make([]SelectOption, len(in))
+	for i, v := range in {
+		out[i] = SelectOption{
+			Value: v.ID().String(),
+			Label: labelFn(v),
+		}
+	}
+	return out
 }

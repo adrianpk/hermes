@@ -32,8 +32,21 @@ func (repo *HermesRepo) CreateSection(ctx context.Context, section ssg.Section) 
 	if err != nil {
 		return err
 	}
-	
+
 	sectionDA := ssg.ToSectionDA(section)
 	_, err = repo.db.NamedExecContext(ctx, query, sectionDA)
 	return err
+}
+
+func (repo *HermesRepo) GetSections(ctx context.Context) ([]ssg.Section, error) {
+	query, err := repo.Query().Get(ssgAuth, resSection, "GetAll")
+	if err != nil {
+		return nil, err
+	}
+	var das []ssg.SectionDA
+	err = repo.db.SelectContext(ctx, &das, query)
+	if err != nil {
+		return nil, err
+	}
+	return ssg.ToSections(das), nil
 }
