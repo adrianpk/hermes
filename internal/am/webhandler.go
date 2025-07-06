@@ -48,7 +48,7 @@ func (h *WebHandler) FlashError(w http.ResponseWriter, r *http.Request, msg stri
 	h.FlashManager().AddFlash(r, NotificationType.Error, msg)
 }
 
-func (h *WebHandler) FlashDebug(w http.ResponseWriter, r *http.Request, msg string) {
+func (h *WebHandler) Debug(w http.ResponseWriter, r *http.Request, msg string) {
 	h.FlashManager().AddFlash(r, NotificationType.Debug, msg)
 }
 
