@@ -20,5 +20,9 @@ func NewWebRouter(handler *WebHandler, mw []am.Middleware, opts ...am.Option) *a
 	core.Get("/new-section", handler.NewSection)
 	core.Post("/create-section", handler.CreateSection)
 
+	// Layout routes
+	core.Get("/new-layout", handler.NewLayout)
+	core.Post("/create-layout", handler.CreateLayout)
+
 	return core
 }

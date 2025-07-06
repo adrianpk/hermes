@@ -16,4 +16,6 @@ type Repo interface {
 	// DeleteContent(ctx context.Context, contentID uuid.UUID) error
 	CreateSection(ctx context.Context, section Section) error
 	GetSections(ctx context.Context) ([]Section, error)
+	CreateLayout(ctx context.Context, layout Layout) error
+	GetLayouts(ctx context.Context) ([]Layout, error)
 }

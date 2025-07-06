@@ -50,3 +50,28 @@ func (repo *HermesRepo) GetSections(ctx context.Context) ([]ssg.Section, error) 
 	}
 	return ssg.ToSections(das), nil
 }
+
+// Layout related
+
+func (repo *HermesRepo) CreateLayout(ctx context.Context, layout ssg.Layout) error {
+	query, err := repo.Query().Get(ssgAuth, "layout", "Create")
+	if err != nil {
+		return err
+	}
+	layoutDA := ssg.ToLayoutDA(layout)
+	_, err = repo.db.NamedExecContext(ctx, query, layoutDA)
+	return err
+}
+
+func (repo *HermesRepo) GetLayouts(ctx context.Context) ([]ssg.Layout, error) {
+	query, err := repo.Query().Get(ssgAuth, "layout", "GetAll")
+	if err != nil {
+		return nil, err
+	}
+	var das []ssg.LayoutDA
+	err = repo.db.SelectContext(ctx, &das, query)
+	if err != nil {
+		return nil, err
+	}
+	return ssg.ToLayouts(das), nil
+}

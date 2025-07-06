@@ -93,3 +93,44 @@ func ToSections(das []SectionDA) []Section {
 	}
 	return sections
 }
+
+// Layout related
+
+func ToLayoutDA(layout Layout) LayoutDA {
+	return LayoutDA{
+		ID:          layout.ID(),
+		ShortID:     sql.NullString{String: layout.ShortID(), Valid: layout.ShortID() != ""},
+		Name:        sql.NullString{String: layout.Name, Valid: layout.Name != ""},
+		Description: sql.NullString{String: layout.Description, Valid: layout.Description != ""},
+		Code:        sql.NullString{String: layout.Code, Valid: layout.Code != ""},
+		CreatedBy:   sql.NullString{String: layout.CreatedBy().String(), Valid: layout.CreatedBy() != uuid.Nil},
+		UpdatedBy:   sql.NullString{String: layout.UpdatedBy().String(), Valid: layout.UpdatedBy() != uuid.Nil},
+		CreatedAt:   sql.NullTime{Time: layout.CreatedAt(), Valid: !layout.CreatedAt().IsZero()},
+		UpdatedAt:   sql.NullTime{Time: layout.UpdatedAt(), Valid: !layout.UpdatedAt().IsZero()},
+	}
+}
+
+func ToLayout(da LayoutDA) Layout {
+	return Layout{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID.String),
+			am.WithType("layout"),
+			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
+			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
+			am.WithCreatedAt(da.CreatedAt.Time),
+			am.WithUpdatedAt(da.UpdatedAt.Time),
+		),
+		Name:        da.Name.String,
+		Description: da.Description.String,
+		Code:        da.Code.String,
+	}
+}
+
+func ToLayouts(das []LayoutDA) []Layout {
+	layouts := make([]Layout, len(das))
+	for i, da := range das {
+		layouts[i] = ToLayout(da)
+	}
+	return layouts
+}
