@@ -18,6 +18,8 @@ type Section struct {
 	Description string    `json:"description"`
 	Path        string    `json:"path"`
 	LayoutID    uuid.UUID `json:"layout_id"`
+	Image       string    `json:"image"`
+	Header      string    `json:"header"`
 }
 
 func NewSection(name, description, path string, layoutID uuid.UUID) Section {
