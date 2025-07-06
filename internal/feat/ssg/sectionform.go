@@ -16,11 +16,7 @@ type SectionForm struct {
 
 func NewSectionForm(r *http.Request) SectionForm {
 	return SectionForm{
-		BaseForm:    am.NewBaseForm(r),
-		Name:        r.FormValue("name"),
-		Description: r.FormValue("description"),
-		Path:        r.FormValue("path"),
-		LayoutID:    r.FormValue("layout_id"),
+		BaseForm: am.NewBaseForm(r),
 	}
 }
 
