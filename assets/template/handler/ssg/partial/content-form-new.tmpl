@@ -7,6 +7,21 @@
   <input type="hidden" name="aquamarine.csrf.token" value="{{ $form.CSRF }}" />
   <input type="hidden" name="id" value="{{ .Data.ID }}" />
   <div>
+    <label for="section_id" class="block text-sm font-medium text-gray-700">Section:</label>
+    <select
+      id="section_id"
+      name="section_id"
+      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+      required
+    >
+      <option value="">Section</option>
+      {{- range $section := .Selects.sections }}
+        <option value="{{ $section.Value }}" {{ if eq $form.SectionID $section.Value }}selected{{ end }}>{{ $section.Label }}</option>
+      {{- end }}
+    </select>
+    {{ FieldMsg $form "section_id" }}
+  </div>
+  <div>
     <label for="{{$headingField}}" class="block text-sm font-medium text-gray-700">
       Heading:
     </label>

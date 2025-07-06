@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	contentPath = "content"
+	contentPath    = "content"
 	contentPathFmt = "%s/%s-content%s"
 )
 
@@ -40,7 +40,7 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := ToContentFromForm(form) 
+	content := ToContentFromForm(form)
 	content.GenCreateValues()
 
 	user := h.sampleUserInSession(r)
@@ -64,10 +64,21 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form ContentForm, errorMessage string, statusCode int) {
 	content := NewContent(form.Heading, form.Body)
 
+	ctx := r.Context()
+	sections, err := h.service.GetSections(ctx) // NOTE: This value should be cached
+	if err != nil {
+		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
+		return
+	}
+
 	page := am.NewPage(r, content)
 	page.SetForm(form)
 	page.Form.SetAction(am.CreatePath(ssgPath, contentPath))
 	page.Form.SetSubmitButtonText("Create")
+
+	sectionLabel := func(s Section) string { return s.Name }
+	sectionOptions := am.ToSelectOptionsWithID(sections, sectionLabel)
+	page.AddSelect("sections", sectionOptions)
 
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(content)
@@ -89,4 +100,3 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 
 	h.OK(w, r, &buf, statusCode)
 }
-

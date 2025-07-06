@@ -7,7 +7,7 @@ BINARY = $(BUILD_DIR)/$(APP_NAME)
 DB_FILE = hermes.db
 DB_BACKUP_DIR = bak
 
-# Helper function to backup database with timestamp
+# Backup database with timestamp
 define backup_db
 	@if [ -f "$(DB_FILE)" ]; then \
 		TIMESTAMP=$$(date +%Y%m%d%H%M%S); \

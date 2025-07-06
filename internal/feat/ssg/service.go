@@ -13,6 +13,7 @@ type Service interface {
 	// GetAllContent(ctx context.Context) ([]Content, error)
 	// DeleteContent(ctx context.Context, id uuid.UUID) error
 	CreateSection(ctx context.Context, section Section) error
+	GetSections(ctx context.Context) ([]Section, error)
 }
 
 var (
@@ -40,4 +41,8 @@ func (svc *BaseService) CreateContent(ctx context.Context, content Content) erro
 // Section related
 func (svc *BaseService) CreateSection(ctx context.Context, section Section) error {
 	return svc.repo.CreateSection(ctx, section)
+}
+
+func (svc *BaseService) GetSections(ctx context.Context) ([]Section, error) {
+	return svc.repo.GetSections(ctx)
 }
