@@ -1,8 +1,6 @@
 package ssg
 
 import (
-	"fmt"
-
 	"github.com/adrianpk/hermes/internal/am"
 )
 
@@ -17,9 +15,9 @@ func ToContentForm(content Content) ContentForm {
 
 func ToContentFromForm(form ContentForm) Content {
 	return Content{
-		BaseModel:   am.NewModel(am.WithType(sectionType)),
-		Heading: form.Heading,
-		Body:    form.Body,
+		BaseModel: am.NewModel(am.WithType(sectionType)),
+		Heading:   form.Heading,
+		Body:      form.Body,
 	}
 }
 
@@ -34,7 +32,6 @@ func ToSectionForm(section Section) SectionForm {
 }
 
 func ToSectionFromForm(form SectionForm) Section {
-	fmt.Printf("Converting SectionForm to Section: %+v\n", form)
 	return Section{
 		BaseModel:   am.NewModel(am.WithType(sectionType)),
 		Name:        form.Name,

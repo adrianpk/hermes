@@ -79,8 +79,8 @@ func main() {
 		return
 	}
 
-	// templateManager.FlashDebug()
-	// queryManager.FlashDebug()
+	// templateManager.Debug()
+	// queryManager.Debug()
 
 	err = app.Start(ctx)
 	if err != nil {
