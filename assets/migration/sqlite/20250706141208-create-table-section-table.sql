@@ -1,11 +1,13 @@
 -- +migrate Up
-CREATE TABLE content (
+CREATE TABLE section (
     id TEXT PRIMARY KEY,
     short_id TEXT,
-    user_id TEXT NOT NULL,
-    heading TEXT NOT NULL,
-    body TEXT,
-    status TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    path TEXT,
+    layout_id TEXT,
+    image TEXT,
+    header TEXT,
     created_by TEXT,
     updated_by TEXT,
     created_at TIMESTAMP,
@@ -13,4 +15,4 @@ CREATE TABLE content (
 );
 
 -- +migrate Down
-DROP TABLE content;
+DROP TABLE section;
