@@ -14,6 +14,8 @@ type Service interface {
 	// DeleteContent(ctx context.Context, id uuid.UUID) error
 	CreateSection(ctx context.Context, section Section) error
 	GetSections(ctx context.Context) ([]Section, error)
+	CreateLayout(ctx context.Context, layout Layout) error
+	GetLayouts(ctx context.Context) ([]Layout, error)
 }
 
 var (
@@ -45,4 +47,13 @@ func (svc *BaseService) CreateSection(ctx context.Context, section Section) erro
 
 func (svc *BaseService) GetSections(ctx context.Context) ([]Section, error) {
 	return svc.repo.GetSections(ctx)
+}
+
+// Layout related
+func (svc *BaseService) CreateLayout(ctx context.Context, layout Layout) error {
+	return svc.repo.CreateLayout(ctx, layout)
+}
+
+func (svc *BaseService) GetLayouts(ctx context.Context) ([]Layout, error) {
+	return svc.repo.GetLayouts(ctx)
 }
