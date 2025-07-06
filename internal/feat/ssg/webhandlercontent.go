@@ -76,9 +76,7 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 	page.Form.SetAction(am.CreatePath(ssgPath, contentPath))
 	page.Form.SetSubmitButtonText("Create")
 
-	sectionLabel := func(s Section) string { return s.Name }
-	sectionOptions := am.ToSelectOptionsWithID(sections, sectionLabel)
-	page.AddSelect("sections", sectionOptions)
+	page.AddSelect("sections", am.ToSelectOpt(sections))
 
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(content)

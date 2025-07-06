@@ -31,6 +31,10 @@ func (r *Content) Slug() string {
 	return am.Normalize(r.Heading) + "-" + r.ShortID()
 }
 
+func (r *Content) OptLabel() string {
+	return r.Heading
+}
+
 // UnmarshalJSON ensures Model is always initialized after unmarshal.
 func (r *Content) UnmarshalJSON(data []byte) error {
 	type Alias Content
