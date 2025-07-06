@@ -44,3 +44,21 @@ func ToSectionFromForm(form SectionForm) Section {
 		Header:      form.Header,
 	}
 }
+
+// Layout related
+func ToLayoutForm(layout Layout) LayoutForm {
+	return LayoutForm{
+		Name:        layout.Name,
+		Description: layout.Description,
+		Code:        layout.Code,
+	}
+}
+
+func ToLayoutFromForm(form LayoutForm) Layout {
+	return Layout{
+		BaseModel:   am.NewModel(am.WithType("layout")),
+		Name:        form.Name,
+		Description: form.Description,
+		Code:        form.Code,
+	}
+}
