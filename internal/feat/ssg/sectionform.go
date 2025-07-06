@@ -12,6 +12,8 @@ type SectionForm struct {
 	Description string `form:"description"`
 	Path        string `form:"path"`
 	LayoutID    string `form:"layout_id"`
+	Image       string `form:"image"`
+	Header      string `form:"header"`
 }
 
 func NewSectionForm(r *http.Request) SectionForm {

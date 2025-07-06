@@ -28,6 +28,8 @@ func ToSectionForm(section Section) SectionForm {
 		Description: section.Description,
 		Path:        section.Path,
 		LayoutID:    section.LayoutID.String(),
+		Image:       section.Image,
+		Header:      section.Header,
 	}
 }
 
@@ -38,5 +40,7 @@ func ToSectionFromForm(form SectionForm) Section {
 		Description: form.Description,
 		Path:        form.Path,
 		LayoutID:    am.ParseUUID(form.LayoutID),
+		Image:       form.Image,
+		Header:      form.Header,
 	}
 }

@@ -54,16 +54,18 @@ func ToContents(das []ContentDA) []Content {
 
 func ToSectionDA(section Section) SectionDA {
 	return SectionDA{
-		ID:        section.ID(),
-		Name:   sql.NullString{String: section.Name, Valid: section.Name != ""},
-		Description:      sql.NullString{String: section.Description, Valid: section.Description != ""},
+		ID:          section.ID(),
+		Name:        sql.NullString{String: section.Name, Valid: section.Name != ""},
+		Description: sql.NullString{String: section.Description, Valid: section.Description != ""},
 		Path:        sql.NullString{String: section.Path, Valid: section.Path != ""},
 		LayoutID:    sql.NullString{String: section.LayoutID.String(), Valid: section.LayoutID != uuid.Nil},
-		ShortID:   sql.NullString{String: section.ShortID(), Valid: section.ShortID() != ""},
-		CreatedBy: sql.NullString{String: section.CreatedBy().String(), Valid: section.CreatedBy() != uuid.Nil},
-		UpdatedBy: sql.NullString{String: section.UpdatedBy().String(), Valid: section.UpdatedBy() != uuid.Nil},
-		CreatedAt: sql.NullTime{Time: section.CreatedAt(), Valid: !section.CreatedAt().IsZero()},
-		UpdatedAt: sql.NullTime{Time: section.UpdatedAt(), Valid: !section.UpdatedAt().IsZero()},
+		ShortID:     sql.NullString{String: section.ShortID(), Valid: section.ShortID() != ""},
+		CreatedBy:   sql.NullString{String: section.CreatedBy().String(), Valid: section.CreatedBy() != uuid.Nil},
+		UpdatedBy:   sql.NullString{String: section.UpdatedBy().String(), Valid: section.UpdatedBy() != uuid.Nil},
+		CreatedAt:   sql.NullTime{Time: section.CreatedAt(), Valid: !section.CreatedAt().IsZero()},
+		UpdatedAt:   sql.NullTime{Time: section.UpdatedAt(), Valid: !section.UpdatedAt().IsZero()},
+		Image:       sql.NullString{String: section.Image, Valid: section.Image != ""},
+		Header:      sql.NullString{String: section.Header, Valid: section.Header != ""},
 	}
 }
 
@@ -78,7 +80,9 @@ func ToSection(da SectionDA) Section {
 			am.WithCreatedAt(da.CreatedAt.Time),
 			am.WithUpdatedAt(da.UpdatedAt.Time),
 		),
-		Name: da.Name.String,
+		Name:   da.Name.String,
+		Image:  da.Image.String,
+		Header: da.Header.String,
 	}
 }
 
