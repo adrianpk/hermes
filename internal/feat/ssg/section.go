@@ -36,6 +36,14 @@ func (s *Section) Slug() string {
 	return am.Normalize(s.Name) + "-" + s.ShortID()
 }
 
+func (s Section) OptValue() string {
+	return s.ID().String()
+}
+
+func (s Section) OptLabel() string {
+	return s.Name
+}
+
 // UnmarshalJSON ensures Model is always initialized after unmarshal.
 func (s *Section) UnmarshalJSON(data []byte) error {
 	type Alias Section

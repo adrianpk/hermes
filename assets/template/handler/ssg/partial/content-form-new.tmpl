@@ -15,7 +15,7 @@
       required
     >
       <option value="">Section</option>
-      {{- range $section := .Selects.sections }}
+      {{- range $section := .Select.sections }}
         <option value="{{ $section.Value }}" {{ if eq $form.SectionID $section.Value }}selected{{ end }}>{{ $section.Label }}</option>
       {{- end }}
     </select>
