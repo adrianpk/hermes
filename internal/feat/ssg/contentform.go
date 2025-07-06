@@ -8,8 +8,9 @@ import (
 
 type ContentForm struct {
 	*am.BaseForm
-	Heading string `form:"heading" required:"true"`
-	Body    string `form:"body"`
+	Heading   string `form:"heading" required:"true"`
+	Body      string `form:"body"`
+	SectionID string `form:"section_id"`
 }
 
 func NewContentForm(r *http.Request) ContentForm {
