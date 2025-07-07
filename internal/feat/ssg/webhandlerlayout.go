@@ -68,7 +68,7 @@ func (h *WebHandler) newLayout(w http.ResponseWriter, r *http.Request, form Layo
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(layout)
 
-	tmpl, err := h.Tmpl().Get("ssg", "new-layout")
+	tmpl, err := h.Tmpl().Get(ssgFeat, "new-layout")
 	if err != nil {
 		h.Err(w, err, am.ErrTemplateNotFound, http.StatusInternalServerError)
 		return
