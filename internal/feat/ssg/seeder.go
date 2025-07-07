@@ -22,7 +22,7 @@ type SeedData struct {
 
 func NewSeeder(assetsFS embed.FS, engine string, repo Repo) *Seeder {
 	return &Seeder{
-		JSONSeeder: am.NewJSONSeeder("ssg", assetsFS, engine),
+		JSONSeeder: am.NewJSONSeeder(ssgFeat, assetsFS, engine),
 		repo:       repo,
 	}
 }
@@ -35,11 +35,17 @@ func (s *Seeder) Setup(ctx context.Context) error {
 }
 
 func (s *Seeder) SeedAll(ctx context.Context) error {
+	s.Log().Info("Seeding SSG data...")
 	byFeature, err := s.JSONSeeder.LoadJSONSeeds()
 	if err != nil {
 		return fmt.Errorf("failed to load JSON seeds: %w", err)
 	}
+	const ssgFeat = "ssg"
 	for feature, seeds := range byFeature {
+		if feature != ssgFeat {
+			continue
+		}
+		fmt.Printf("Seeding feature: %s\n", feature)
 		for _, seed := range seeds {
 			applied, err := s.JSONSeeder.SeedApplied(seed.Datetime, seed.Name, feature)
 			if err != nil {
