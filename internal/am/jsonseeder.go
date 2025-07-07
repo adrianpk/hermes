@@ -27,8 +27,8 @@ type JSONSeeder struct {
 	db       *sql.DB
 }
 
-func NewJSONSeeder(assetsFS embed.FS, engine string, opts ...Option) *JSONSeeder {
-	name := fmt.Sprintf("%s-json-seeder", engine)
+func NewJSONSeeder(feat string, assetsFS embed.FS, engine string, opts ...Option) *JSONSeeder {
+	name := fmt.Sprintf("%s-%s-json-seeder", feat, engine)
 	core := NewCore(name, opts...)
 	return &JSONSeeder{
 		Core:     core,

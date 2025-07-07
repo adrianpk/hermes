@@ -1,0 +1,21 @@
+{
+  "layouts": [
+    {
+      "ref": "alt",
+      "name": "alt",
+      "description": "Alternative editable layout, copy of the default layout from the filesystem.",
+      "code": "{{ define \"layout\" }}\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>{{ block \"title\" . }}Title{{ end }}</title>\n    <link href=\"https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css\" rel=\"stylesheet\">\n</head>\n<body class=\"bg-gray-100 text-gray-900\">\n{{ block \"header\" . }}Header{{ end }}\n{{ block \"flash\" . }}\n{{ end }}\n<main class=\"p-4\">\n    {{ block \"content\" . }}Content{{ end }}\n</main>\n<aside class=\"p-4\">\n    {{ block \"submenu\" . }}{{ end }}\n</aside>\n<footer class=\"bg-gray-200 text-center p-4 mt-4\">\n    <p>&copy; 2025 Hermes</p>\n</footer>\n</body>\n</html>\n{{ end }}"
+    }
+  ],
+  "sections": [
+    {
+      "ref": "root",
+      "name": "root",
+      "description": "Top-level section of the site.",
+      "path": "/",
+      "layout_ref": "alt",
+      "image": "",
+      "header": ""
+    }
+  ]
+}
