@@ -31,7 +31,7 @@ type SeedData struct {
 
 func NewSeeder(assetsFS embed.FS, engine string, repo Repo) *Seeder {
 	return &Seeder{
-		JSONSeeder: am.NewJSONSeeder(assetsFS, engine),
+		JSONSeeder: am.NewJSONSeeder("auth", assetsFS, engine),
 		repo:       repo,
 	}
 }
