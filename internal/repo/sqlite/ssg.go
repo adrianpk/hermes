@@ -25,6 +25,22 @@ func (repo *HermesRepo) CreateContent(ctx context.Context, content ssg.Content) 
 	return err
 }
 
+func (repo *HermesRepo) GetAllContent(ctx context.Context) ([]ssg.Content, error) {
+	query, err := repo.Query().Get(ssgAuth, resContent, "GetAll")
+	if err != nil {
+		return nil, err
+	}
+
+	var contentDAs []ssg.ContentDA
+	err = repo.db.SelectContext(ctx, &contentDAs, query)
+	if err != nil {
+		return nil, err
+	}
+
+	contents := ssg.ToContents(contentDAs)
+	return contents, nil
+}
+
 // Section related
 
 func (repo *HermesRepo) CreateSection(ctx context.Context, section ssg.Section) error {
@@ -63,7 +79,7 @@ func (repo *HermesRepo) CreateLayout(ctx context.Context, layout ssg.Layout) err
 	return err
 }
 
-func (repo *HermesRepo) GetLayouts(ctx context.Context) ([]ssg.Layout, error) {
+func (repo *HermesRepo) GetAllLayouts(ctx context.Context) ([]ssg.Layout, error) {
 	query, err := repo.Query().Get(ssgAuth, "layout", "GetAll")
 	if err != nil {
 		return nil, err
