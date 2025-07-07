@@ -55,6 +55,7 @@ func main() {
 	ssgService := ssg.NewService(repo)
 	ssgWebHandler := ssg.NewWebHandler(templateManager, fm, ssgService)
 	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, fm.Middlewares())
+	ssgSeeder := ssg.NewSeeder(assetsFS, engine, repo)
 	app.MountWeb("/ssg", ssgWebRouter)
 
 	// Add deps
@@ -72,6 +73,7 @@ func main() {
 	app.Add(ssgService)
 	app.Add(ssgWebHandler)
 	app.Add(ssgWebRouter)
+	app.Add(ssgSeeder)
 
 	err := app.Setup(ctx)
 	if err != nil {

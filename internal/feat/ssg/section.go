@@ -13,7 +13,6 @@ const (
 
 type Section struct {
 	*am.BaseModel
-	UserID      uuid.UUID
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Path        string    `json:"path"`

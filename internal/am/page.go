@@ -121,7 +121,6 @@ func (p *Page) GetSelects(key string) []SelectOpt {
 	return p.Select[key]
 }
 
-// ToSelectOpt extracts select options from a slice using OptValue() and OptLabel().
 func ToSelectOpt[T Selectable](in []T) []SelectOpt {
 	out := make([]SelectOpt, len(in))
 	for i, v := range in {
