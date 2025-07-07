@@ -49,7 +49,12 @@ func (s *Seeder) SeedAll(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to load JSON seeds: %w", err)
 	}
+	const authFeat = "auth"
 	for feature, seeds := range byFeature {
+		if feature != authFeat {
+			continue
+		}
+		fmt.Printf("Seeding feature: %s\n", feature)
 		for _, seed := range seeds {
 			applied, err := s.JSONSeeder.SeedApplied(seed.Datetime, seed.Name, feature)
 			if err != nil {

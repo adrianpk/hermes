@@ -68,7 +68,7 @@ func (h *WebHandler) newSection(w http.ResponseWriter, r *http.Request, form Sec
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(section)
 
-	tmpl, err := h.Tmpl().Get("ssg", "new-section")
+	tmpl, err := h.Tmpl().Get(ssgFeat, "new-section")
 	if err != nil {
 		h.Err(w, err, am.ErrTemplateNotFound, http.StatusInternalServerError)
 		return

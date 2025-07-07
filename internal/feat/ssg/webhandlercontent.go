@@ -81,7 +81,7 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 	menu := page.NewMenu(ssgPath)
 	menu.AddListItem(content)
 
-	tmpl, err := h.Tmpl().Get("ssg", "new-content")
+	tmpl, err := h.Tmpl().Get(ssgFeat, "new-content")
 	if err != nil {
 		h.Err(w, err, am.ErrTemplateNotFound, http.StatusInternalServerError)
 		return
@@ -97,4 +97,37 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 	}
 
 	h.OK(w, r, &buf, statusCode)
+}
+
+func (h *WebHandler) ListContent(w http.ResponseWriter, r *http.Request) {
+	h.Log().Info("List content")
+	ctx := r.Context()
+
+	contents, err := h.service.GetAllContent(ctx)
+	if err != nil {
+		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
+		return
+	}
+
+	page := am.NewPage(r, contents)
+	page.Form.SetAction(ssgPath)
+
+	menu := page.NewMenu(ssgPath)
+	menu.AddNewItem(contentPath)
+
+	tmpl, err := h.Tmpl().Get(ssgFeat, "list-content")
+	if err != nil {
+		h.Err(w, err, am.ErrTemplateNotFound, http.StatusInternalServerError)
+		return
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, page)
+	if err != nil {
+		h.Err(w, err, am.ErrCannotRenderTemplate, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(buf.Bytes())
 }
