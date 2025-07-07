@@ -67,6 +67,7 @@ func (s *JSONSeeder) LoadJSONSeeds() (map[string][]JSONSeed, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return seedsByFeature, nil
 }
 
