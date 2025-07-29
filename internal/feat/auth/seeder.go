@@ -54,7 +54,7 @@ func (s *Seeder) SeedAll(ctx context.Context) error {
 		if feature != authFeat {
 			continue
 		}
-		fmt.Printf("Seeding feature: %s\n", feature)
+
 		for _, seed := range seeds {
 			applied, err := s.JSONSeeder.SeedApplied(seed.Datetime, seed.Name, feature)
 			if err != nil {
