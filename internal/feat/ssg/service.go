@@ -9,8 +9,8 @@ import (
 type Service interface {
 	CreateContent(ctx context.Context, content Content) error
 	GetAllContent(ctx context.Context) ([]Content, error)
-	// GetContent(ctx context.Context, id uuid.UUID) (Content, error)
-	// UpdateContent(ctx context.Context, content Content) error
+	GetContent(ctx context.Context, id string) (Content, error)
+	UpdateContent(ctx context.Context, content Content) error
 	// GetAllContent(ctx context.Context) ([]Content, error)
 	// DeleteContent(ctx context.Context, id uuid.UUID) error
 	CreateSection(ctx context.Context, section Section) error
@@ -43,6 +43,14 @@ func (svc *BaseService) CreateContent(ctx context.Context, content Content) erro
 
 func (svc *BaseService) GetAllContent(ctx context.Context) ([]Content, error) {
 	return svc.repo.GetAllContent(ctx)
+}
+
+func (svc *BaseService) GetContent(ctx context.Context, id string) (Content, error) {
+	return svc.repo.GetContent(ctx, id)
+}
+
+func (svc *BaseService) UpdateContent(ctx context.Context, content Content) error {
+	return svc.repo.UpdateContent(ctx, content)
 }
 
 // Section related

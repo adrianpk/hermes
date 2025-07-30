@@ -8,6 +8,7 @@ import (
 
 type ContentForm struct {
 	*am.BaseForm
+	ID        string `form:"id"`
 	Heading   string `form:"heading" required:"true"`
 	Body      string `form:"body"`
 	SectionID string `form:"section_id"`
@@ -16,6 +17,7 @@ type ContentForm struct {
 func NewContentForm(r *http.Request) ContentForm {
 	return ContentForm{
 		BaseForm: am.NewBaseForm(r),
+		ID:       r.URL.Query().Get("id"),
 	}
 }
 
@@ -27,8 +29,10 @@ func ContentFormFromRequest(r *http.Request) (cf ContentForm, err error) {
 
 	return ContentForm{
 		BaseForm: am.NewBaseForm(r),
+		ID:       r.Form.Get("id"),
 		Heading:  r.Form.Get("heading"),
 		Body:     r.Form.Get("body"),
+		SectionID: r.Form.Get("section_id"),
 	}, nil
 }
 

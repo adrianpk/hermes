@@ -54,7 +54,7 @@ func main() {
 	// SSG feature
 	ssgService := ssg.NewService(repo)
 	ssgWebHandler := ssg.NewWebHandler(templateManager, fm, ssgService)
-	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, fm.Middlewares())
+	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, append(fm.Middlewares(), am.LogHeadersMw))
 	ssgSeeder := ssg.NewSeeder(assetsFS, engine, repo)
 	app.MountWeb("/ssg", ssgWebRouter)
 

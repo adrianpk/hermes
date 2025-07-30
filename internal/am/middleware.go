@@ -16,6 +16,20 @@ var (
 	once           sync.Once
 )
 
+// LogHeadersMw is a middleware that logs all request headers.
+func LogHeadersMw(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := NewLogger("request-headers")
+		log.Info("Incoming Request Headers:")
+		for name, headers := range r.Header {
+			for _, h := range headers {
+				log.Infof("  %s: %s", name, h)
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 // MethodOverrideMw is a middleware that checks for a _method form field and overrides the request method.
 func MethodOverrideMw(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

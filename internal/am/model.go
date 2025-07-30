@@ -267,6 +267,11 @@ func (m *BaseModel) SetRef(ref string) {
 	m.RefValue = ref
 }
 
+// IsZero returns true if the BaseModel is uninitialized (i.e., its ID is a zero UUID).
+func (m *BaseModel) IsZero() bool {
+	return m.id == uuid.Nil
+}
+
 // normalize replaces space-like characters or non-ASCII characters with '-'
 // and converts the string to lowercase.
 func Normalize(s string) string {

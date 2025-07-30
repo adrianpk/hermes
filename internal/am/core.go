@@ -2,6 +2,7 @@ package am
 
 import (
 	"context"
+	"time"
 )
 
 type Core interface {
@@ -115,4 +116,10 @@ func WithCfg(cfg *Config) Option {
 	return func(c Core) {
 		c.SetCfg(cfg)
 	}
+	
+}
+
+// Now returns the current time.
+func Now() time.Time {
+	return time.Now()
 }
