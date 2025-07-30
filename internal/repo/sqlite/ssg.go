@@ -41,6 +41,32 @@ func (repo *HermesRepo) GetAllContent(ctx context.Context) ([]ssg.Content, error
 	return contents, nil
 }
 
+func (repo *HermesRepo) GetContent(ctx context.Context, id string) (ssg.Content, error) {
+	query, err := repo.Query().Get(ssgAuth, resContent, "Get")
+	if err != nil {
+		return ssg.Content{}, err
+	}
+
+	var contentDA ssg.ContentDA
+	err = repo.db.GetContext(ctx, &contentDA, query, id)
+	if err != nil {
+		return ssg.Content{}, err
+	}
+
+	return ssg.ToContent(contentDA), nil
+}
+
+func (repo *HermesRepo) UpdateContent(ctx context.Context, content ssg.Content) error {
+	query, err := repo.Query().Get(ssgAuth, resContent, "Update")
+	if err != nil {
+		return err
+	}
+
+	contentDA := ssg.ToContentDA(content)
+	_, err = repo.db.NamedExecContext(ctx, query, contentDA)
+	return err
+}
+
 // Section related
 
 func (repo *HermesRepo) CreateSection(ctx context.Context, section ssg.Section) error {

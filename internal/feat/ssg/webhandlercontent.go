@@ -21,22 +21,23 @@ const (
 func (h *WebHandler) NewContent(w http.ResponseWriter, r *http.Request) {
 	h.Log().Info("New content form")
 	form := NewContentForm(r)
-	h.newContent(w, r, form, "", http.StatusOK)
+	h.renderContentForm(w, r, form, NewContent("", ""), "", http.StatusOK)
 }
 
 func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 	h.Log().Info("Create content")
+	h.Log().Infof("HX-Request header: %s", r.Header.Get("HX-Request"))
 	ctx := r.Context()
 
 	form, err := ContentFormFromRequest(r)
 	if err != nil {
-		h.newContent(w, r, form, "Invalid form data", http.StatusBadRequest)
+		h.renderContentForm(w, r, form, NewContent("", ""), "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	err = form.Validate()
 	if err != nil || form.HasErrors() {
-		h.newContent(w, r, form, "Validation failed", http.StatusBadRequest)
+		h.renderContentForm(w, r, form, NewContent("", ""), "Validation failed", http.StatusBadRequest)
 		return
 	}
 
@@ -53,18 +54,70 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If HTMX request, set HX-Redirect header and return
+	if am.IsHTMXRequest(r) {
+		redirectURL := am.EditPath(ssgPath, contentPath, content.ID())
+		h.Log().Infof("HTMX request: Setting HX-Redirect to %s", redirectURL)
+		w.Header().Set("HX-Redirect", redirectURL)
+		h.renderContentForm(w, r, form, content, "", http.StatusOK)
+		return
+	}
+
 	h.FlashInfo(w, r, "Content created")
-
-	path := am.ListPath(ssgPath, contentPath)
-	path = "new-content"
-
-	h.Redir(w, r, path, http.StatusSeeOther)
+	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.ID()), http.StatusSeeOther)
 }
 
-func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form ContentForm, errorMessage string, statusCode int) {
-	content := NewContent(form.Heading, form.Body)
-
+func (h *WebHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
+	h.Log().Info("Update content")
 	ctx := r.Context()
+
+	form, err := ContentFormFromRequest(r)
+	if err != nil {
+		h.renderContentForm(w, r, form, NewContent("", ""), "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	err = form.Validate()
+	if err != nil || form.HasErrors() {
+		h.renderContentForm(w, r, form, NewContent("", ""), "Validation failed", http.StatusBadRequest)
+		return
+	}
+
+	content := ToContentFromForm(form)
+	content.GenUpdateValues()
+
+	user := h.sampleUserInSession(r)
+	content.UserID = user.ID()
+
+	err = h.service.UpdateContent(ctx, content)
+	if err != nil {
+		h.Err(w, err, am.ErrCannotUpdateResource, http.StatusInternalServerError)
+		return
+	}
+
+	if am.IsHTMXRequest(r) {
+		w.Header().Set("Content-Type", "text/html")
+		// Return a small HTML fragment with the current timestamp for auto-save feedback
+		_, _ = w.Write([]byte("<div id=\"save-status\" data-timestamp=\"" + am.Now().Format(am.TimeFormat) + "\"></div>"))
+		return
+	}
+
+	h.FlashInfo(w, r, "Content updated")
+	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.ID()), http.StatusSeeOther)
+}
+
+func (h *WebHandler) renderContentForm(w http.ResponseWriter, r *http.Request, form ContentForm, content Content, errorMessage string, statusCode int) {
+	h.Log().Info("Render content form")
+	h.Log().Infof("renderContentForm - form: %+v", form)
+	h.Log().Infof("renderContentForm - form.ID: %s", form.ID)
+	h.Log().Infof("renderContentForm - content: %+v", content)
+	if content.BaseModel != nil {
+		h.Log().Infof("renderContentForm - content.BaseModel ID: %s", content.BaseModel.ID())
+	} else {
+		h.Log().Info("renderContentForm - content.BaseModel is nil")
+	}
+	ctx := r.Context()
+
 	sections, err := h.service.GetSections(ctx) // NOTE: This value should be cached
 	if err != nil {
 		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
@@ -73,8 +126,14 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 
 	page := am.NewPage(r, content)
 	page.SetForm(form)
-	page.Form.SetAction(am.CreatePath(ssgPath, contentPath))
-	page.Form.SetSubmitButtonText("Create")
+
+	if content.IsZero() {
+		page.Form.SetAction(am.CreatePath(ssgPath, contentPath))
+		page.Form.SetSubmitButtonText("Create")
+	} else {
+		page.Form.SetAction(am.UpdatePath(ssgPath, contentPath))
+		page.Form.SetSubmitButtonText("Update")
+	}
 
 	page.AddSelect("sections", am.ToSelectOpt(sections))
 
@@ -97,6 +156,27 @@ func (h *WebHandler) newContent(w http.ResponseWriter, r *http.Request, form Con
 	}
 
 	h.OK(w, r, &buf, statusCode)
+}
+
+func (h *WebHandler) EditContent(w http.ResponseWriter, r *http.Request) {
+	h.Log().Info("Edit content")
+	ctx := r.Context()
+
+	id := r.URL.Query().Get("id")
+	h.Log().Infof("EditContent: Received ID: %s", id)
+	if id == "" {
+		h.Err(w, nil, am.ErrBadRequest, http.StatusBadRequest)
+		return
+	}
+
+	content, err := h.service.GetContent(ctx, id)
+	if err != nil {
+		h.Err(w, err, am.ErrCannotGetResource, http.StatusInternalServerError)
+		return
+	}
+
+	form := ToContentForm(r, content)
+	h.renderContentForm(w, r, form, content, "", http.StatusOK)
 }
 
 func (h *WebHandler) ListContent(w http.ResponseWriter, r *http.Request) {

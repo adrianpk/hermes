@@ -2,7 +2,9 @@ package am
 
 const (
 	ErrInvalidID            = "Invalid ID"
+	ErrBadRequest           = "Bad request"
 	ErrCannotGetResources   = "Cannot get resources"
+	ErrCannotGetResource    = "Cannot get resource"
 	ErrCannotCreateResource = "Cannot create resource"
 	ErrResourceNotFound     = "Resource not found"
 	ErrCannotUpdateResource = "Cannot update resource"

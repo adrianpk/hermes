@@ -1,23 +1,29 @@
 package ssg
 
 import (
+	"net/http"
+
 	"github.com/adrianpk/hermes/internal/am"
 )
 
 // Content related
 
-func ToContentForm(content Content) ContentForm {
+func ToContentForm(r *http.Request, content Content) ContentForm {
 	return ContentForm{
-		Heading: content.Heading,
-		Body:    content.Body,
+		BaseForm:  am.NewBaseForm(r),
+		ID:        content.ID().String(),
+		Heading:   content.Heading,
+		Body:      content.Body,
+		SectionID: content.SectionID.String(),
 	}
 }
 
 func ToContentFromForm(form ContentForm) Content {
 	return Content{
-		BaseModel: am.NewModel(am.WithType(sectionType)),
+		BaseModel: am.NewModel(am.WithID(am.ParseUUID(form.ID)), am.WithType(contentType)),
 		Heading:   form.Heading,
 		Body:      form.Body,
+		SectionID: am.ParseUUID(form.SectionID),
 	}
 }
 

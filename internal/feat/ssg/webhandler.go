@@ -27,13 +27,8 @@ func NewWebHandler(tm *am.TemplateManager, flash *am.FlashManager, service Servi
 
 // sampleUserInSession returns a fake user for now.
 func (h *WebHandler) sampleUserInSession(r *http.Request) auth.User {
-	return auth.User{
-		BaseModel: am.NewModel(
-			am.WithID(uuid.MustParse("00000000-0000-0000-0000-000000000001")),
-			am.WithType("user"),
-		),
-		Username: "fakeuser",
-		Name:     "Fake User",
-		IsActive: true,
-	}
+	user := auth.NewUser("fakeuser", "Fake User")
+	user.BaseModel.SetID(uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	user.IsActive = true
+	return user
 }
