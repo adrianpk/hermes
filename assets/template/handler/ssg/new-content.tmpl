@@ -3,12 +3,35 @@
 {{ end }}
 
 {{ define "title" }}
-New Content
+{{ .Name }}
 {{ end }}
 
 {{ define "content" }}
-<h1>New Content</h1>
+<h1>
+  {{ .Name }}
+  {{ if not .IsNew }}
+  <span id="last-update-counter" style="color: #888; font-size: 0.9em; margin-left: 8px;">
+    (Last update just now)
+  </span>
+  {{ end }}
+</h1>
 {{ template "content-form-new" . }}
+{{ if not .IsNew }}
+<script>
+let lastUpdate = Date.now();
+function updateCounter() {
+  const now = Date.now();
+  const secs = Math.floor((now - lastUpdate) / 1000);
+  const text = secs < 5 ? "just now" : `${secs} sec ago`;
+  document.getElementById("last-update-counter").textContent = `(Last update ${text})`;
+}
+setInterval(updateCounter, 5000);
+document.body.addEventListener("htmx:afterOnLoad", function(evt) {
+  lastUpdate = Date.now();
+  updateCounter();
+});
+</script>
+{{ end }}
 {{ end }}
 
 {{ define "submenu" }}

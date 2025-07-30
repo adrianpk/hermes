@@ -2,6 +2,8 @@ package am
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -53,6 +55,20 @@ func (h *WebHandler) Debug(w http.ResponseWriter, r *http.Request, msg string) {
 }
 
 func (h *WebHandler) OK(w http.ResponseWriter, r *http.Request, buf *bytes.Buffer, statusCode int) {
+	flash := h.FlashManager().GetFlash(r)
+
+	if IsHTMXRequest(r) && flash.HasMessages() {
+		// For HTMX requests, send flash messages via HX-Trigger header
+		flashJSON, err := json.Marshal(flash.Notifications)
+		if err != nil {
+			h.Log().Errorf("Failed to marshal flash messages: %v", err)
+		} else {
+            triggerHeader := fmt.Sprintf("{\"flashMessage\": %s}", flashJSON)
+            h.Log().Infof("Setting HX-Trigger header: %s", triggerHeader)
+            w.Header().Set("HX-Trigger", triggerHeader)
+        }
+	}
+
 	h.FlashManager().ClearFlashCookie(w)
 
 	w.WriteHeader(statusCode)

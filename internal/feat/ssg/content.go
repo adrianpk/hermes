@@ -13,10 +13,11 @@ const (
 
 type Content struct {
 	*am.BaseModel
-	UserID  uuid.UUID
-	Heading string `json:"heading"`
-	Body    string `json:"body"`
-	Status  string
+	UserID    uuid.UUID
+	SectionID uuid.UUID
+	Heading   string `json:"heading"`
+	Body      string `json:"body"`
+	Status    string
 }
 
 func NewContent(heading, body string) Content {
@@ -25,6 +26,10 @@ func NewContent(heading, body string) Content {
 		Heading:   heading,
 		Body:      body,
 	}
+}
+
+func (c Content) IsZero() bool {
+	return c.BaseModel.IsZero()
 }
 
 func (r *Content) Slug() string {

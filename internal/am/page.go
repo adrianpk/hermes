@@ -10,6 +10,8 @@ import (
 
 // Page struct represents a web page with data, fm messages, form, menu, and feature information.
 type Page struct {
+	Name     string // Name of the page (e.g. title)
+	IsNew    bool   // True if the page is for a new entity
 	Form     Form
 	Entity   any   // Single entity instance of any type
 	Entities []any // Collection of entities of any type

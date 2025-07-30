@@ -14,3 +14,11 @@ SELECT * FROM content;
 -- Get
 SELECT * FROM content WHERE id = :id;
 
+-- Update
+UPDATE content SET
+    heading = :heading,
+    body = :body,
+    status = :status,
+    updated_by = :updated_by,
+    updated_at = :updated_at
+WHERE id = :id;
