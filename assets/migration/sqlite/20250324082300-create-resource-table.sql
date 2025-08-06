@@ -1,12 +1,12 @@
 -- +migrate Up
 CREATE TABLE resource (
                            id TEXT PRIMARY KEY,
-                           short_id TEXT,
-                           name TEXT,
-                           description TEXT,
-                           label TEXT,
-                           type TEXT,
-                           uri TEXT,
+                           short_id TEXT NOT NULL DEFAULT '',
+                           name TEXT NOT NULL DEFAULT '',
+                           description TEXT NOT NULL DEFAULT '',
+                           label TEXT NOT NULL DEFAULT '',
+                           type TEXT NOT NULL DEFAULT '',
+                           uri TEXT NOT NULL DEFAULT '',
                            created_by TEXT,
                            updated_by TEXT,
                            created_at TIMESTAMP,

@@ -6,11 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// TeamDA represents the data access layer for the Team model.
-type TeamDA struct {
+// OrgDA represents the data access layer for the Org model.
+type OrgDA struct {
 	ID               uuid.UUID  `db:"id"`
 	ShortID          string     `db:"short_id"`
-	OrgID            uuid.UUID  `db:"org_id"`
 	Name             string     `db:"name"`
 	ShortDescription string     `db:"short_description"`
 	Description      string     `db:"description"`

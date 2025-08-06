@@ -1,10 +1,7 @@
 package ssg
 
 import (
-	"database/sql"
-
 	"github.com/adrianpk/hermes/internal/am"
-	"github.com/google/uuid"
 )
 
 // Content related
@@ -12,15 +9,15 @@ import (
 func ToContentDA(content Content) ContentDA {
 	return ContentDA{
 		ID:        content.ID(),
-		UserID:    sql.NullString{String: content.UserID.String(), Valid: content.UserID != uuid.Nil},
-		Heading:   sql.NullString{String: content.Heading, Valid: content.Heading != ""},
-		Body:      sql.NullString{String: content.Body, Valid: content.Body != ""},
-		Status:    sql.NullString{String: content.Status, Valid: content.Status != ""},
-		ShortID:   sql.NullString{String: content.ShortID(), Valid: content.ShortID() != ""},
-		CreatedBy: sql.NullString{String: content.CreatedBy().String(), Valid: content.CreatedBy() != uuid.Nil},
-		UpdatedBy: sql.NullString{String: content.UpdatedBy().String(), Valid: content.UpdatedBy() != uuid.Nil},
-		CreatedAt: sql.NullTime{Time: content.CreatedAt(), Valid: !content.CreatedAt().IsZero()},
-		UpdatedAt: sql.NullTime{Time: content.UpdatedAt(), Valid: !content.UpdatedAt().IsZero()},
+		UserID:    content.UserID,
+		Heading:   content.Heading,
+		Body:      content.Body,
+		Status:    content.Status,
+		ShortID:   content.ShortID(),
+		CreatedBy: am.UUIDPtr(content.CreatedBy()),
+		UpdatedBy: am.UUIDPtr(content.UpdatedBy()),
+		CreatedAt: am.TimePtr(content.CreatedAt()),
+		UpdatedAt: am.TimePtr(content.UpdatedAt()),
 	}
 }
 
@@ -28,17 +25,17 @@ func ToContent(da ContentDA) Content {
 	return Content{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String),
+			am.WithShortID(da.ShortID),
 			am.WithType(contentType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		UserID:  am.ParseUUIDNull(da.UserID),
-		Heading: da.Heading.String,
-		Body:    da.Body.String,
-		Status:  da.Status.String,
+		UserID:  da.UserID,
+		Heading: da.Heading,
+		Body:    da.Body,
+		Status:  da.Status,
 	}
 }
 
@@ -55,17 +52,17 @@ func ToContents(das []ContentDA) []Content {
 func ToSectionDA(section Section) SectionDA {
 	return SectionDA{
 		ID:          section.ID(),
-		Name:        sql.NullString{String: section.Name, Valid: section.Name != ""},
-		Description: sql.NullString{String: section.Description, Valid: section.Description != ""},
-		Path:        sql.NullString{String: section.Path, Valid: section.Path != ""},
-		LayoutID:    sql.NullString{String: section.LayoutID.String(), Valid: section.LayoutID != uuid.Nil},
-		ShortID:     sql.NullString{String: section.ShortID(), Valid: section.ShortID() != ""},
-		CreatedBy:   sql.NullString{String: section.CreatedBy().String(), Valid: section.CreatedBy() != uuid.Nil},
-		UpdatedBy:   sql.NullString{String: section.UpdatedBy().String(), Valid: section.UpdatedBy() != uuid.Nil},
-		CreatedAt:   sql.NullTime{Time: section.CreatedAt(), Valid: !section.CreatedAt().IsZero()},
-		UpdatedAt:   sql.NullTime{Time: section.UpdatedAt(), Valid: !section.UpdatedAt().IsZero()},
-		Image:       sql.NullString{String: section.Image, Valid: section.Image != ""},
-		Header:      sql.NullString{String: section.Header, Valid: section.Header != ""},
+		Name:        section.Name,
+		Description: section.Description,
+		Path:        section.Path,
+		LayoutID:    section.LayoutID.String(),
+		ShortID:     section.ShortID(),
+		CreatedBy:   am.UUIDPtr(section.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(section.UpdatedBy()),
+		CreatedAt:   am.TimePtr(section.CreatedAt()),
+		UpdatedAt:   am.TimePtr(section.UpdatedAt()),
+		Image:       section.Image,
+		Header:      section.Header,
 	}
 }
 
@@ -73,16 +70,19 @@ func ToSection(da SectionDA) Section {
 	return Section{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String),
+			am.WithShortID(da.ShortID),
 			am.WithType(sectionType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:   da.Name.String,
-		Image:  da.Image.String,
-		Header: da.Header.String,
+		Name:        da.Name,
+		Description: da.Description,
+		Path:        da.Path,
+		LayoutID:    am.ParseUUID(da.LayoutID),
+		Image:       da.Image,
+		Header:      da.Header,
 	}
 }
 
@@ -99,14 +99,14 @@ func ToSections(das []SectionDA) []Section {
 func ToLayoutDA(layout Layout) LayoutDA {
 	return LayoutDA{
 		ID:          layout.ID(),
-		ShortID:     sql.NullString{String: layout.ShortID(), Valid: layout.ShortID() != ""},
-		Name:        sql.NullString{String: layout.Name, Valid: layout.Name != ""},
-		Description: sql.NullString{String: layout.Description, Valid: layout.Description != ""},
-		Code:        sql.NullString{String: layout.Code, Valid: layout.Code != ""},
-		CreatedBy:   sql.NullString{String: layout.CreatedBy().String(), Valid: layout.CreatedBy() != uuid.Nil},
-		UpdatedBy:   sql.NullString{String: layout.UpdatedBy().String(), Valid: layout.UpdatedBy() != uuid.Nil},
-		CreatedAt:   sql.NullTime{Time: layout.CreatedAt(), Valid: !layout.CreatedAt().IsZero()},
-		UpdatedAt:   sql.NullTime{Time: layout.UpdatedAt(), Valid: !layout.UpdatedAt().IsZero()},
+		Name:        layout.Name,
+		Description: layout.Description,
+		Code:        layout.Code,
+		ShortID:     layout.ShortID(),
+		CreatedBy:   am.UUIDPtr(layout.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(layout.UpdatedBy()),
+		CreatedAt:   am.TimePtr(layout.CreatedAt()),
+		UpdatedAt:   am.TimePtr(layout.UpdatedAt()),
 	}
 }
 
@@ -114,16 +114,16 @@ func ToLayout(da LayoutDA) Layout {
 	return Layout{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String),
+			am.WithShortID(da.ShortID),
 			am.WithType("layout"),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:        da.Name.String,
-		Description: da.Description.String,
-		Code:        da.Code.String,
+		Name:        da.Name,
+		Description: da.Description,
+		Code:        da.Code,
 	}
 }
 
@@ -134,3 +134,4 @@ func ToLayouts(das []LayoutDA) []Layout {
 	}
 	return layouts
 }
+
