@@ -1,20 +1,20 @@
 package ssg
 
 import (
-	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type ContentDA struct {
-	ID        uuid.UUID      `db:"id"`
-	ShortID   sql.NullString `db:"short_id"`
-	UserID    sql.NullString `db:"user_id"`
-	Heading   sql.NullString `db:"heading"`
-	Body      sql.NullString `db:"body"`
-	Status    sql.NullString `db:"status"`
-	CreatedBy sql.NullString `db:"created_by"`
-	UpdatedBy sql.NullString `db:"updated_by"`
-	CreatedAt sql.NullTime   `db:"created_at"`
-	UpdatedAt sql.NullTime   `db:"updated_at"`
+	ID        uuid.UUID  `db:"id"`
+	ShortID   string     `db:"short_id"`
+	UserID    uuid.UUID  `db:"user_id"`
+	Heading   string     `db:"heading"`
+	Body      string     `db:"body"`
+	Status    string     `db:"status"`
+	CreatedBy *string    `db:"created_by"`
+	UpdatedBy *string    `db:"updated_by"`
+	CreatedAt *time.Time `db:"created_at"`
+	UpdatedAt *time.Time `db:"updated_at"`
 }

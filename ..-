@@ -1,0 +1,720 @@
+# Guía de Replicación: Refactorización a Punteros para Campos Nullable
+
+Esta guía detalla los pasos exactos para replicar la refactorización de `sql.Null*` a punteros (`*string`, `*time.Time`) en las structs `ContentDA`, `SectionDA`, `LayoutDA` y sus funciones de conversión asociadas en el paquete `ssg`.
+
+## 1. Propósito
+
+El objetivo de esta refactorización es simplificar el manejo de campos `nullable` en las structs de acceso a datos (DA) de Go, utilizando punteros en lugar de los tipos `sql.NullString` y `sql.NullTime`. Esto busca reducir la verbosidad y mejorar la legibilidad del código, especialmente en las funciones de conversión. Adicionalmente, se busca centralizar las funciones auxiliares de conversión de punteros en un paquete más genérico (`internal/am/conv.go`).
+
+## 2. Prerrequisitos
+
+*   Un entorno de desarrollo Go configurado.
+*   Acceso al código fuente del proyecto `hermes2`.
+*   La herramienta `make` disponible para compilar el proyecto.
+*   Familiaridad con el uso de la CLI de Gemini (o la ejecución directa de comandos `replace` y `run_shell_command`).
+
+## 3. Archivos Afectados
+
+Los siguientes archivos fueron modificados durante este proceso:
+
+*   `internal/feat/ssg/contentda.go`
+*   `internal/feat/ssg/sectionda.go`
+*   `internal/feat/ssg/layoutda.go`
+*   `internal/feat/ssg/convda.go`
+*   `assets/migration/sqlite/20250625184816-create-content-table.sql`
+*   `assets/migration/sqlite/20250706141208-create-table-section-table.sql`
+*   `assets/migration/sqlite/20250706205838-create-table-layout.sql`
+*   `internal/am/conv.go` (Nuevo archivo)
+
+## 4. Pasos de Replicación
+
+Sigue estos pasos en el orden indicado. Es crucial que el `old_string` en cada comando `replace` coincida *exactamente* con el contenido actual del archivo, incluyendo espacios, tabulaciones y saltos de línea.
+
+### Paso 4.1: Identificar Campos Nullable (Estado Final)
+
+Después de la refactorización, solo los campos de auditoría (`created_by`, `updated_by`, `created_at`, `updated_at`) son `nullable` en las structs DA. Los demás campos `TEXT` que antes eran `nullable` ahora son `NOT NULL DEFAULT ''` en la base de datos y `string` en las structs DA.
+
+**Tabla `content`:**
+*   `short_id` (TEXT) - NOT NULL DEFAULT ''
+*   `body` (TEXT) - NOT NULL DEFAULT ''
+*   `status` (TEXT) - NOT NULL DEFAULT ''
+*   `created_by` (TEXT) - NULLABLE
+*   `updated_by` (TEXT) - NULLABLE
+*   `created_at` (TIMESTAMP) - NULLABLE
+*   `updated_at` (TIMESTAMP) - NULLABLE
+
+**Tabla `section`:**
+*   `short_id` (TEXT) - NOT NULL DEFAULT ''
+*   `description` (TEXT) - NOT NULL DEFAULT ''
+*   `path` (TEXT) - NOT NULL DEFAULT ''
+*   `layout_id` (TEXT) - NOT NULL DEFAULT ''
+*   `image` (TEXT) - NOT NULL DEFAULT ''
+*   `header` (TEXT) - NOT NULL DEFAULT ''
+*   `created_by` (TEXT) - NULLABLE
+*   `updated_by` (TEXT) - NULLABLE
+*   `created_at` (TIMESTAMP) - NULLABLE
+*   `updated_at` (TIMESTAMP) - NULLABLE
+
+**Tabla `layout`:**
+*   `short_id` (TEXT) - NOT NULL DEFAULT ''
+*   `description` (TEXT) - NOT NULL DEFAULT ''
+*   `code` (TEXT) - NOT NULL DEFAULT ''
+*   `created_by` (TEXT) - NULLABLE
+*   `updated_by` (TEXT) - NULLABLE
+*   `created_at` (TIMESTAMP) - NULLABLE
+*   `updated_at` (TIMESTAMP) - NULLABLE
+
+### Paso 4.2: Modificar Migraciones SQL
+
+Actualiza las migraciones para que los campos no-auditoría sean `NOT NULL DEFAULT ''`.
+
+**Modificar `assets/migration/sqlite/20250625184816-create-content-table.sql`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/assets/migration/sqlite/20250625184816-create-content-table.sql", new_string = '''CREATE TABLE content (
+    id TEXT PRIMARY KEY,
+    short_id TEXT NOT NULL DEFAULT '',
+    user_id TEXT NOT NULL,
+    heading TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT '',
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+''', old_string = '''CREATE TABLE content (
+    id TEXT PRIMARY KEY,
+    short_id TEXT,
+    user_id TEXT NOT NULL,
+    heading TEXT NOT NULL,
+    body TEXT,
+    status TEXT,
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+'''))
+```
+
+**Modificar `assets/migration/sqlite/20250706205838-create-table-layout.sql`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/assets/migration/sqlite/20250706205838-create-table-layout.sql", new_string = '''CREATE TABLE layout (
+    id TEXT PRIMARY KEY,
+    short_id TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    code TEXT NOT NULL DEFAULT '',
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+''', old_string = '''CREATE TABLE layout (
+    id TEXT PRIMARY KEY,
+    short_id TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    code TEXT,
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+'''))
+```
+
+**Modificar `assets/migration/sqlite/20250706141208-create-table-section-table.sql`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/assets/migration/sqlite/20250706141208-create-table-section-table.sql", new_string = '''CREATE TABLE section (
+    id TEXT PRIMARY KEY,
+    short_id TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    path TEXT NOT NULL DEFAULT '',
+    layout_id TEXT NOT NULL DEFAULT '',
+    image TEXT NOT NULL DEFAULT '',
+    header TEXT NOT NULL DEFAULT '',
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+''', old_string = '''CREATE TABLE section (
+    id TEXT PRIMARY KEY,
+    short_id TEXT,
+    name TEXT NOT NULL,
+    description TEXT,
+    path TEXT,
+    layout_id TEXT,
+    image TEXT,
+    header TEXT,
+    created_by TEXT,
+    updated_by TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+'''))
+```
+
+### Paso 4.3: Modificar las Structs DA
+
+Actualiza las structs DA para que los campos no-auditoría sean `string` y los de auditoría `*string` o `*time.Time`.
+
+**Modificar `internal/feat/ssg/contentda.go`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/internal/feat/ssg/contentda.go", new_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type ContentDA struct {
+	ID        uuid.UUID  `db:"id"`
+	ShortID   string     `db:"short_id"`
+	UserID    uuid.UUID  `db:"user_id"`
+	Heading   string     `db:"heading"`
+	Body      string     `db:"body"`
+	Status    string     `db:"status"`
+	CreatedBy *string    `db:"created_by"`
+	UpdatedBy *string    `db:"updated_by"`
+	CreatedAt *time.Time `db:"created_at"`
+	UpdatedAt *time.Time `db:"updated_at"`
+}
+''', old_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type ContentDA struct {
+	ID        uuid.UUID  `db:"id"`
+	ShortID   *string    `db:"short_id"`
+	UserID    uuid.UUID  `db:"user_id"` // NOT NULL in DB
+	Heading   string     `db:"heading"` // NOT NULL in DB
+	Body      *string    `db:"body"`
+	Status    *string    `db:"status"`
+	CreatedBy *string    `db:"created_by"`
+	UpdatedBy *string    `db:"updated_by"`
+	CreatedAt *time.Time `db:"created_at"`
+	UpdatedAt *time.Time `db:"updated_at"`
+}
+'''))
+```
+
+**Modificar `internal/feat/ssg/sectionda.go`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/internal/feat/ssg/sectionda.go", new_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type SectionDA struct {
+	ID          uuid.UUID  `db:"id"`
+	ShortID     string     `db:"short_id"`
+	Name        string     `db:"name"`
+	Description string     `db:"description"`
+	Path        string     `db:"path"`
+	LayoutID    string     `db:"layout_id"`
+	Image       string     `db:"image"`
+	Header      string     `db:"header"`
+	CreatedBy   *string    `db:"created_by"`
+	UpdatedBy   *string    `db:"updated_by"`
+	CreatedAt   *time.Time `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
+}
+''', old_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type SectionDA struct {
+	ID          uuid.UUID  `db:"id"`
+	ShortID     string     `db:"short_id"` // NOT NULL in DB
+	Name        string     `db:"name"` // NOT NULL in DB
+	Description string     `db:"description"` // NOT NULL in DB
+	Path        string     `db:"path"` // NOT NULL in DB
+	LayoutID    string     `db:"layout_id"` // NOT NULL in DB
+	Image       string     `db:"image"` // NOT NULL in DB
+	Header      string     `db:"header"` // NOT NULL in DB
+	CreatedBy   *string    `db:"created_by"`
+	UpdatedBy   *string    `db:"updated_by"`
+	CreatedAt   *time.Time `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
+}
+'''))
+```
+
+**Modificar `internal/feat/ssg/layoutda.go`:**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/internal/feat/ssg/layoutda.go", new_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type LayoutDA struct {
+	ID          uuid.UUID  `db:"id"`
+	ShortID     string     `db:"short_id"`
+	Name        string     `db:"name"`
+	Description string     `db:"description"`
+	Code        string     `db:"code"`
+	CreatedBy   *string    `db:"created_by"`
+	UpdatedBy   *string    `db:"updated_by"`
+	CreatedAt   *time.Time `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
+}
+''', old_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type LayoutDA struct {
+	ID          uuid.UUID  `db:"id"`
+	ShortID     string     `db:"short_id"` // NOT NULL in DB
+	Name        string     `db:"name"` // NOT NULL in DB
+	Description string     `db:"description"` // NOT NULL in DB
+	Code        string     `db:"code"` // NOT NULL in DB
+	CreatedBy   *string    `db:"created_by"`
+	UpdatedBy   *string    `db:"updated_by"`
+	CreatedAt   *time.Time `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
+}
+'''))
+```
+
+### Paso 4.4: Mover Funciones Auxiliares a `internal/am/conv.go`
+
+Crea el archivo `internal/am/conv.go` y mueve las funciones `StringPtr`, `StringVal`, `TimePtr`, `TimeVal`, `UUIDPtr`, `UUIDVal` a este nuevo archivo.
+
+**Crear `internal/am/conv.go`:**
+
+```python
+print(default_api.write_file(content = """package am
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// Helper functions for pointer conversions
+func StringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func StringVal(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func TimePtr(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
+}
+
+func TimeVal(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
+
+func UUIDPtr(id uuid.UUID) *string {
+	if id == uuid.Nil {
+		return nil
+	}
+	s := id.String()
+	return &s
+}
+
+func UUIDVal(s *string) uuid.UUID {
+	if s == nil {
+		return uuid.Nil
+	}
+	parsedUUID, err := uuid.Parse(*s)
+	if err != nil {
+		return uuid.Nil
+	}
+	return parsedUUID
+}
+""", file_path = "/home/adrian/Projects/hermes/hermes2/internal/am/conv.go"))
+```
+
+### Paso 4.5: Actualizar `convda.go`
+
+Elimina las funciones auxiliares de `internal/feat/ssg/convda.go` y ajusta las llamadas para usar las funciones del paquete `am`. También elimina las importaciones no utilizadas.
+
+**Modificar `internal/feat/ssg/convda.go` (Eliminar funciones auxiliares y ajustar llamadas/imports):**
+
+```python
+print(default_api.replace(file_path = "/home/adrian/Projects/hermes/hermes2/internal/feat/ssg/convda.go", new_string = '''package ssg
+
+import (
+	"github.com/adrianpk/hermes/internal/am"
+)
+
+// Content related
+
+func ToContentDA(content Content) ContentDA {
+	return ContentDA{
+		ID:        content.ID(),
+		UserID:    content.UserID,
+		Heading:   content.Heading,
+		Body:      content.Body,
+		Status:    content.Status,
+		ShortID:   content.ShortID(),
+		CreatedBy: am.UUIDPtr(content.CreatedBy()),
+		UpdatedBy: am.UUIDPtr(content.UpdatedBy()),
+		CreatedAt: am.TimePtr(content.CreatedAt()),
+		UpdatedAt: am.TimePtr(content.UpdatedAt()),
+	}
+}
+
+func ToContent(da ContentDA) Content {
+	return Content{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(contentType),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
+		UserID:  da.UserID,
+		Heading: da.Heading,
+		Body:    da.Body,
+		Status:  da.Status,
+	}
+}
+
+func ToContents(das []ContentDA) []Content {
+	contents := make([]Content, len(das))
+	for i, da := range das {
+		contents[i] = ToContent(da)
+	}
+	return contents
+}
+
+// Section related
+
+func ToSectionDA(section Section) SectionDA {
+	return SectionDA{
+		ID:          section.ID(),
+		Name:        section.Name,
+		Description: section.Description,
+		Path:        section.Path,
+		LayoutID:    section.LayoutID.String(),
+		ShortID:     section.ShortID(),
+		CreatedBy:   am.UUIDPtr(section.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(section.UpdatedBy()),
+		CreatedAt:   am.TimePtr(section.CreatedAt()),
+		UpdatedAt:   am.TimePtr(section.UpdatedAt()),
+		Image:       section.Image,
+		Header:      section.Header,
+	}
+}
+
+func ToSection(da SectionDA) Section {
+	return Section{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(sectionType),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
+		Name:        da.Name,
+		Description: da.Description,
+		Path:        da.Path,
+		LayoutID:    am.ParseUUID(da.LayoutID),
+		Image:       da.Image,
+		Header:      da.Header,
+	}
+}
+
+func ToSections(das []SectionDA) []Section {
+	sections := make([]Section, len(das))
+	for i, da := range das {
+		sections[i] = ToSection(da)
+	}
+	return sections
+}
+
+// Layout related
+
+func ToLayoutDA(layout Layout) LayoutDA {
+	return LayoutDA{
+		ID:          layout.ID(),
+		Name:        layout.Name,
+		Description: layout.Description,
+		Code:        layout.Code,
+		ShortID:     layout.ShortID(),
+		CreatedBy:   am.UUIDPtr(layout.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(layout.UpdatedBy()),
+		CreatedAt:   am.TimePtr(layout.CreatedAt()),
+		UpdatedAt:   am.TimePtr(layout.UpdatedAt()),
+	}
+}
+
+func ToLayout(da LayoutDA) Layout {
+	return Layout{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType("layout"),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
+		Name:        da.Name,
+		Description: da.Description,
+		Code:        da.Code,
+	}
+}
+
+func ToLayouts(das []LayoutDA) []Layout {
+	layouts := make([]Layout, len(das))
+	for i, da := range das {
+		layouts[i] = ToLayout(da)
+	}
+	return layouts
+}
+''', old_string = '''package ssg
+
+import (
+	"time"
+
+	"github.com/adrianpk/hermes/internal/am"
+	"github.com/google/uuid"
+)
+
+// Helper functions for pointer conversions
+func StringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func StringVal(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func TimePtr(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
+}
+
+func TimeVal(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
+
+func UUIDPtr(id uuid.UUID) *string {
+	if id == uuid.Nil {
+		return nil
+	}
+	s := id.String()
+	return &s
+}
+
+func UUIDVal(s *string) uuid.UUID {
+	if s == nil {
+		return uuid.Nil
+	}
+	parsedUUID, err := uuid.Parse(*s)
+	if err != nil {
+		return uuid.Nil
+	}
+	return parsedUUID
+}
+
+// Content related
+
+func ToContentDA(content Content) ContentDA {
+	return ContentDA{
+		ID:        content.ID(),
+		UserID:    content.UserID,
+		Heading:   content.Heading,
+		Body:      content.Body,
+		Status:    content.Status,
+		ShortID:   content.ShortID(),
+		CreatedBy: UUIDPtr(content.CreatedBy()),
+		UpdatedBy: UUIDPtr(content.UpdatedBy()),
+		CreatedAt: TimePtr(content.CreatedAt()),
+		UpdatedAt: TimePtr(content.UpdatedAt()),
+	}
+}
+
+func ToContent(da ContentDA) Content {
+	return Content{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(contentType),
+			am.WithCreatedBy(UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(TimeVal(da.UpdatedAt)),
+		),
+		UserID:  da.UserID,
+		Heading: da.Heading,
+		Body:    da.Body,
+		Status:  da.Status,
+	}
+}
+
+func ToContents(das []ContentDA) []Content {
+	contents := make([]Content, len(das))
+	for i, da := range das {
+		contents[i] = ToContent(da)
+	}
+	return contents
+}
+
+// Section related
+
+func ToSectionDA(section Section) SectionDA {
+	return SectionDA{
+		ID:          section.ID(),
+		Name:        section.Name,
+		Description: section.Description,
+		Path:        section.Path,
+		LayoutID:    section.LayoutID.String(),
+		ShortID:     section.ShortID(),
+		CreatedBy:   UUIDPtr(section.CreatedBy()),
+		UpdatedBy:   UUIDPtr(section.UpdatedBy()),
+		CreatedAt:   TimePtr(section.CreatedAt()),
+		UpdatedAt:   TimePtr(section.UpdatedAt()),
+		Image:       section.Image,
+		Header:      section.Header,
+	}
+}
+
+func ToSection(da SectionDA) Section {
+	return Section{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(sectionType),
+			am.WithCreatedBy(UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(TimeVal(da.UpdatedAt)),
+		),
+		Name:        da.Name,
+		Description: da.Description,
+		Path:        da.Path,
+		LayoutID:    am.ParseUUID(da.LayoutID),
+		Image:       da.Image,
+		Header:      da.Header,
+	}
+}
+
+func ToSections(das []SectionDA) []Section {
+	sections := make([]Section, len(das))
+	for i, da := range das {
+		sections[i] = ToSection(da)
+	}
+	return sections
+}
+
+// Layout related
+
+func ToLayoutDA(layout Layout) LayoutDA {
+	return LayoutDA{
+		ID:          layout.ID(),
+		Name:        layout.Name,
+		Description: layout.Description,
+		Code:        layout.Code,
+		ShortID:     layout.ShortID(),
+		CreatedBy:   UUIDPtr(layout.CreatedBy()),
+		UpdatedBy:   UUIDPtr(layout.UpdatedBy()),
+		CreatedAt:   TimePtr(layout.CreatedAt()),
+		UpdatedAt:   TimePtr(layout.UpdatedAt()),
+	}
+}
+
+func ToLayout(da LayoutDA) Layout {
+	return Layout{
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType("layout"),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
+		Name:        da.Name,
+		Description: da.Description,
+		Code:        da.Code,
+	}
+}
+
+func ToLayouts(das []LayoutDA) []Layout {
+	layouts := make([]Layout, len(das))
+	for i, da := range das {
+		layouts[i] = ToLayout(da)
+	}
+	return layouts
+}
+'''))
+```
+
+### Paso 4.6: Verificar la Compilación
+
+Una vez que todos los cambios de código se han aplicado, ejecuta el comando de compilación para asegurarte de que no haya errores.
+
+```python
+print(default_api.run_shell_command(command = "make build", description = "Verifying project compilation after all changes."))
+```
+
+Si la compilación es exitosa, el proceso de refactorización se ha replicado correctamente.
+
+## 5. Notas Importantes
+
+*   **Rutas Absolutas:** Todos los `file_path` en los comandos `replace` deben ser rutas absolutas.
+*   **Coincidencia Exacta:** El `old_string` debe coincidir *exactamente* con el contenido del archivo. Cualquier diferencia (espacios extra, tabulaciones, etc.) hará que el comando falle.
+*   **Verificación Incremental:** Es recomendable ejecutar `make build` después de cada paso principal (o grupo de pasos relacionados) para identificar y corregir errores de forma incremental.
+*   **Dependencias:** Asegúrate de que todas las dependencias de Go estén resueltas (`go mod tidy` si es necesario, aunque no debería serlo para estos cambios).

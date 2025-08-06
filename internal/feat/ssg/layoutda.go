@@ -1,19 +1,19 @@
 package ssg
 
 import (
-	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type LayoutDA struct {
-	ID          uuid.UUID      `db:"id"`
-	ShortID     sql.NullString `db:"short_id"`
-	Name        sql.NullString `db:"name"`
-	Description sql.NullString `db:"description"`
-	Code        sql.NullString `db:"code"`
-	CreatedBy   sql.NullString `db:"created_by"`
-	UpdatedBy   sql.NullString `db:"updated_by"`
-	CreatedAt   sql.NullTime   `db:"created_at"`
-	UpdatedAt   sql.NullTime   `db:"updated_at"`
+	ID          uuid.UUID  `db:"id"`
+	ShortID     string     `db:"short_id"`
+	Name        string     `db:"name"`
+	Description string     `db:"description"`
+	Code        string     `db:"code"`
+	CreatedBy   *string    `db:"created_by"`
+	UpdatedBy   *string    `db:"updated_by"`
+	CreatedAt   *time.Time `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
 }

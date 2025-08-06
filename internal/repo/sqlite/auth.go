@@ -95,15 +95,15 @@ func (repo *HermesRepo) getUserPreload(ctx context.Context, id uuid.UUID) (auth.
 			userMap[userDA.ID] = auth.ToUserExt(userDA)
 		}
 
-		if userDA.RoleID.Valid {
-			roleID, err := uuid.Parse(userDA.RoleID.String)
+		if userDA.RoleID != nil {
+			roleID, err := uuid.Parse(*userDA.RoleID)
 			if err == nil {
 				roles = append(roles, roleID)
 			}
 		}
 
-		if userDA.PermissionID.Valid {
-			permissionID, err := uuid.Parse(userDA.PermissionID.String)
+		if userDA.PermissionID != nil {
+			permissionID, err := uuid.Parse(*userDA.PermissionID)
 			if err == nil {
 				permissions = append(permissions, permissionID)
 			}
@@ -240,8 +240,8 @@ func (repo *HermesRepo) getRolePreload(ctx context.Context, id uuid.UUID) (auth.
 			role = auth.ToRoleExt(roleDA)
 		}
 
-		if roleDA.PermissionID.Valid {
-			permissionID, err := uuid.Parse(roleDA.PermissionID.String)
+		if roleDA.PermissionID != nil {
+			permissionID, err := uuid.Parse(*roleDA.PermissionID)
 			if err == nil {
 				role.PermissionIDs = append(role.PermissionIDs, permissionID)
 			}
@@ -448,8 +448,8 @@ func (repo *HermesRepo) getResourcePreload(ctx context.Context, id uuid.UUID) (a
 			resource = auth.ToResourceExt(resourceDA)
 		}
 
-		if resourceDA.PermissionID.Valid {
-			permissionID, err := uuid.Parse(resourceDA.PermissionID.String)
+		if resourceDA.PermissionID != nil {
+			permissionID, err := uuid.Parse(*resourceDA.PermissionID)
 			if err == nil {
 				resource.PermissionIDs = append(resource.PermissionIDs, permissionID)
 			}
@@ -889,18 +889,7 @@ func (r *HermesRepo) GetTeam(ctx context.Context, id uuid.UUID) (auth.Team, erro
 }
 
 func (r *HermesRepo) CreateTeam(ctx context.Context, team auth.Team) error {
-	da := auth.TeamDA{
-		ID:               sql.NullString{String: team.ID().String(), Valid: team.ID() != uuid.Nil},
-		OrgID:            sql.NullString{String: team.OrgID.String(), Valid: team.OrgID != uuid.Nil},
-		ShortID:          team.ShortID(),
-		Name:             team.Name,
-		ShortDescription: team.ShortDescription,
-		Description:      team.Description,
-		CreatedBy:        sql.NullString{String: team.CreatedBy().String(), Valid: team.CreatedBy() != uuid.Nil},
-		UpdatedBy:        sql.NullString{String: team.UpdatedBy().String(), Valid: team.UpdatedBy() != uuid.Nil},
-		CreatedAt:        team.CreatedAt(),
-		UpdatedAt:        team.UpdatedAt(),
-	}
+	da := auth.ToTeamDA(team)
 	query, err := r.Query().Get(featAuth, resTeam, "Create")
 	if err != nil {
 		return err

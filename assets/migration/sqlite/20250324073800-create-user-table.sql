@@ -1,9 +1,9 @@
 -- +migrate Up
 CREATE TABLE user (
     id TEXT PRIMARY KEY,
-    short_id TEXT,
-    name TEXT,
-    username TEXT,
+    short_id TEXT NOT NULL DEFAULT '',
+    name TEXT NOT NULL DEFAULT '',
+    username TEXT NOT NULL DEFAULT '',
     email_enc BLOB,
     password_enc BLOB,
     created_by TEXT,
@@ -11,7 +11,7 @@ CREATE TABLE user (
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     last_login_at TIMESTAMP,
-    last_login_ip TEXT,
+    last_login_ip TEXT NOT NULL DEFAULT '',
     is_active BOOLEAN DEFAULT 1
 );
 

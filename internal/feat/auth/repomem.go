@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -96,7 +95,7 @@ func (repo *BaseRepo) getUserRolesByID(userID uuid.UUID) []Role {
 	var roles []Role
 	for _, roleID := range repo.userRoles[userID] {
 		roleDA := repo.roles[roleID]
-		roles = append(roles, toRole(roleDA))
+		roles = append(roles, ToRole(roleDA))
 	}
 	return roles
 }
@@ -108,26 +107,6 @@ func (repo *BaseRepo) getUserPermissionsByID(userID uuid.UUID) []Permission {
 		permissions = append(permissions, ToPermission(permissionDA))
 	}
 	return permissions
-}
-
-func toUserDA(user User) UserDA {
-	return UserDA{
-		ID:            user.ID(),
-		ShortID:       sql.NullString{String: user.ShortID(), Valid: user.ShortID() != ""},
-		Name:          sql.NullString{String: user.Name, Valid: user.Name != ""},
-		Username:      sql.NullString{String: user.Username, Valid: user.Username != ""},
-		EmailEnc:      user.EmailEnc,
-		PasswordEnc:   user.PasswordEnc,
-		RoleIDs:       toRoleIDs(user.Roles),
-		PermissionIDs: toPermissionIDs(user.Permissions),
-		CreatedBy:     sql.NullString{String: user.CreatedBy().String(), Valid: user.CreatedBy() != uuid.Nil},
-		UpdatedBy:     sql.NullString{String: user.UpdatedBy().String(), Valid: user.UpdatedBy() != uuid.Nil},
-		CreatedAt:     sql.NullTime{Time: user.CreatedAt(), Valid: !user.CreatedAt().IsZero()},
-		UpdatedAt:     sql.NullTime{Time: user.UpdatedAt(), Valid: !user.UpdatedAt().IsZero()},
-		LastLoginAt:   sql.NullTime{Time: derefTime(user.LastLoginAt), Valid: user.LastLoginAt != nil},
-		LastLoginIP:   sql.NullString{String: user.LastLoginIP, Valid: user.LastLoginIP != ""},
-		IsActive:      sql.NullBool{Bool: user.IsActive, Valid: true},
-	}
 }
 
 func (repo *BaseRepo) CreateUser(ctx context.Context, u User) (User, error) {
@@ -151,7 +130,7 @@ func (repo *BaseRepo) CreateUser(ctx context.Context, u User) (User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	userDA := toUserDA(user)
+	userDA := ToUserDA(user)
 	if _, exists := repo.users[userDA.ID]; exists {
 		return User{}, errors.New("user already exists")
 	}
@@ -164,7 +143,7 @@ func (repo *BaseRepo) UpdateUser(ctx context.Context, user User) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	userDA := toUserDA(user)
+	userDA := ToUserDA(user)
 	if _, exists := repo.users[userDA.ID]; !exists {
 		msg := fmt.Sprintf("user not found for ID: %s", userDA.ID)
 		return errors.New(msg)
@@ -203,7 +182,7 @@ func (repo *BaseRepo) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]Rol
 	var roles []Role
 	for _, roleID := range repo.userRoles[userID] {
 		roleDA := repo.roles[roleID]
-		roles = append(roles, toRole(roleDA))
+		roles = append(roles, ToRole(roleDA))
 	}
 	return roles, nil
 }
@@ -216,7 +195,7 @@ func (repo *BaseRepo) AddRole(ctx context.Context, userID uuid.UUID, role Role) 
 		return errors.New("user not found")
 	}
 
-	roleDA := toRoleDA(role)
+	roleDA := ToRoleDA(role)
 	if _, exists := repo.roles[roleDA.ID]; exists {
 		return errors.New("role already exists")
 	}
@@ -295,7 +274,7 @@ func (repo *BaseRepo) GetUserRole(ctx context.Context, userID, roleID uuid.UUID)
 	for _, rid := range repo.userRoles[userID] {
 		if rid == roleID {
 			roleDA := repo.roles[rid]
-			return toRole(roleDA), nil
+			return ToRole(roleDA), nil
 		}
 	}
 	return Role{}, errors.New("role not found")
@@ -312,7 +291,7 @@ func (repo *BaseRepo) GetRole(ctx context.Context, userID, roleID uuid.UUID) (Ro
 	for _, rid := range repo.userRoles[userID] {
 		if rid == roleID {
 			roleDA := repo.roles[rid]
-			return toRole(roleDA), nil
+			return ToRole(roleDA), nil
 		}
 	}
 	return Role{}, errors.New("role not found")
@@ -322,7 +301,7 @@ func (repo *BaseRepo) CreateRole(ctx context.Context, role Role) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	roleDA := toRoleDA(role)
+	roleDA := ToRoleDA(role)
 	if _, exists := repo.roles[roleDA.ID]; exists {
 		return errors.New("role already exists")
 	}
@@ -338,7 +317,7 @@ func (repo *BaseRepo) UpdateRole(ctx context.Context, userID uuid.UUID, role Rol
 		return errors.New("user not found")
 	}
 
-	roleDA := toRoleDA(role)
+	roleDA := ToRoleDA(role)
 	if _, exists := repo.roles[roleDA.ID]; !exists {
 		msg := fmt.Sprintf("role not found for ID: %s", roleDA.ID)
 		return errors.New(msg)
@@ -470,7 +449,7 @@ func (repo *BaseRepo) GetAllResources(ctx context.Context) ([]Resource, error) {
 
 	var resources []Resource
 	for _, resourceDA := range repo.resources {
-		resources = append(resources, toResource(resourceDA))
+		resources = append(resources, ToResource(resourceDA))
 	}
 	return resources, nil
 }
@@ -483,7 +462,7 @@ func (repo *BaseRepo) GetResource(ctx context.Context, id uuid.UUID) (Resource, 
 	if !exists {
 		return Resource{}, errors.New("resource not found")
 	}
-	return toResource(resourceDA), nil
+	return ToResource(resourceDA), nil
 }
 
 func (repo *BaseRepo) CreateResource(ctx context.Context, resource Resource) error {
@@ -493,7 +472,7 @@ func (repo *BaseRepo) CreateResource(ctx context.Context, resource Resource) err
 	if _, exists := repo.resources[resource.ID()]; exists {
 		return errors.New("resource already exists")
 	}
-	repo.resources[resource.ID()] = toResourceDA(resource)
+	repo.resources[resource.ID()] = ToResourceDA(resource)
 	return nil
 }
 
@@ -501,7 +480,7 @@ func (repo *BaseRepo) UpdateResource(ctx context.Context, resource Resource) err
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	resourceDA := toResourceDA(resource)
+	resourceDA := ToResourceDA(resource)
 	if _, exists := repo.resources[resourceDA.ID]; !exists {
 		return errors.New("resource not found")
 	}
@@ -588,7 +567,7 @@ func (repo *BaseRepo) Debug() {
 		}
 		// Adjusted to use fields from userDA, removed Slug
 		result += fmt.Sprintf("%-10s %-36s %-36s %-20s\n",
-			"User", userDA.ID.String(), userDA.Name.String, userDA.Username.String)
+			"User", userDA.ID.String(), userDA.Name, userDA.Username)
 	}
 	result = fmt.Sprintf("%s state:\n%s", repo.Name(), result)
 	repo.Log().Info(result)
@@ -606,7 +585,7 @@ func (repo *BaseRepo) addSampleData() {
 	user.SetPasswordEnc(passwordEnc)
 	user.RoleIDs = []uuid.UUID{repo.roles[uuid.MustParse("00000000-0000-0000-0000-000000000001")].ID}
 	user.PermissionIDs = []uuid.UUID{repo.permissions[uuid.MustParse("00000000-0000-0000-0000-000000000001")].ID}
-	userDA := toUserDA(user)
+	userDA := ToUserDA(user)
 	userDA.ID = uuid.New()
 	repo.users[userDA.ID] = userDA
 	repo.order = append(repo.order, userDA.ID)
@@ -614,7 +593,7 @@ func (repo *BaseRepo) addSampleData() {
 	// Add sample roles
 	role := NewRole("admin", "Administrator", "Administrator role with full access")
 	role.PermissionIDs = []uuid.UUID{repo.permissions[uuid.MustParse("00000000-0000-0000-0000-000000000001")].ID}
-	roleDA := toRoleDA(role)
+	roleDA := ToRoleDA(role)
 	roleDA.ID = uuid.New()
 	repo.roles[roleDA.ID] = roleDA
 	repo.order = append(repo.order, roleDA.ID)
@@ -640,7 +619,7 @@ func (repo *BaseRepo) addSampleData() {
 		resource := NewResource(name, description, "entity")
 		resource.Slug()
 		resource.GenCreateValues()
-		resourceDA := toResourceDA(resource)
+		resourceDA := ToResourceDA(resource)
 		resourceDA.ID = id
 		repo.resources[id] = resourceDA
 		repo.Log().Info("Created resource with ID: ", id)
@@ -658,7 +637,7 @@ func (repo *BaseRepo) GetAllRoles(ctx context.Context) ([]Role, error) {
 
 	var roles []Role
 	for _, roleDA := range repo.roles {
-		roles = append(roles, toRole(roleDA))
+		roles = append(roles, ToRole(roleDA))
 	}
 	return roles, nil
 }

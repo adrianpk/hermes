@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"database/sql"
-	"time"
-
 	"github.com/adrianpk/hermes/internal/am"
 	"github.com/google/uuid"
 )
@@ -11,49 +8,43 @@ import (
 // ToUserDA converts a User business object to a UserDA data access object
 func ToUserDA(user User) UserDA {
 	return UserDA{
-		ID:            user.ID(),
-		ShortID:       sql.NullString{String: user.ShortID(), Valid: user.ShortID() != ""},
-		Name:          sql.NullString{String: user.Name, Valid: user.Name != ""},
-		Username:      sql.NullString{String: user.Username, Valid: user.Username != ""},
-		EmailEnc:      user.EmailEnc,
-		PasswordEnc:   user.PasswordEnc,
+		ID:          user.ID(),
+		ShortID:     user.ShortID(),
+		Name:        user.Name,
+		Username:    user.Username,
+		EmailEnc:    user.EmailEnc,
+		PasswordEnc: user.PasswordEnc,
 		RoleIDs:       toRoleIDs(user.Roles),
 		PermissionIDs: toPermissionIDs(user.Permissions),
-		CreatedBy:     sql.NullString{String: user.CreatedBy().String(), Valid: user.CreatedBy() != uuid.Nil},
-		UpdatedBy:     sql.NullString{String: user.UpdatedBy().String(), Valid: user.UpdatedBy() != uuid.Nil},
-		CreatedAt:     sql.NullTime{Time: user.CreatedAt(), Valid: !user.CreatedAt().IsZero()},
-		UpdatedAt:     sql.NullTime{Time: user.UpdatedAt(), Valid: !user.UpdatedAt().IsZero()},
-		LastLoginAt:   sql.NullTime{Time: derefTime(user.LastLoginAt), Valid: user.LastLoginAt != nil},
-		LastLoginIP:   sql.NullString{String: user.LastLoginIP, Valid: user.LastLoginIP != ""},
-		IsActive:      sql.NullBool{Bool: user.IsActive, Valid: true},
+		CreatedBy:   am.UUIDPtr(user.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(user.UpdatedBy()),
+		CreatedAt:   am.TimePtr(user.CreatedAt()),
+		UpdatedAt:   am.TimePtr(user.UpdatedAt()),
+		LastLoginAt: user.LastLoginAt,
+		LastLoginIP: user.LastLoginIP,
+		IsActive:    user.IsActive,
 	}
 }
 
 // ToUser converts a UserDA data access object to a User business object
 func ToUser(da UserDA) User {
-	var lastLoginAt *time.Time
-	if da.LastLoginAt.Valid {
-		t := da.LastLoginAt.Time
-		lastLoginAt = &t
-	}
-
 	return User{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String), // Added this line
+			am.WithShortID(da.ShortID),
 			am.WithType(userType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:        da.Name.String,
-		Username:    da.Username.String,
+		Name:        da.Name,
+		Username:    da.Username,
 		EmailEnc:    da.EmailEnc,
 		PasswordEnc: da.PasswordEnc,
-		LastLoginAt: lastLoginAt,
-		LastLoginIP: da.LastLoginIP.String,
-		IsActive:    da.IsActive.Bool,
+		LastLoginAt: da.LastLoginAt,
+		LastLoginIP: da.LastLoginIP,
+		IsActive:    da.IsActive,
 	}
 }
 
@@ -85,26 +76,26 @@ func ToUserExt(da UserExtDA) User {
 	})
 
 	// Add role if present
-	if da.RoleID.Valid {
-		user.RoleIDs = append(user.RoleIDs, am.ParseUUIDNull(da.RoleID))
+	if da.RoleID != nil {
+		user.RoleIDs = append(user.RoleIDs, am.UUIDVal(da.RoleID))
 		user.Roles = append(user.Roles, Role{
 			BaseModel: am.NewModel(
-				am.WithID(am.ParseUUIDNull(da.RoleID)),
+				am.WithID(am.UUIDVal(da.RoleID)),
 				am.WithType(roleType),
 			),
-			Name: da.RoleName.String,
+			Name: am.StringVal(da.RoleName),
 		})
 	}
 
 	// Add permission if present
-	if da.PermissionID.Valid {
-		user.PermissionIDs = append(user.PermissionIDs, am.ParseUUIDNull(da.PermissionID))
+	if da.PermissionID != nil {
+		user.PermissionIDs = append(user.PermissionIDs, am.UUIDVal(da.PermissionID))
 		user.Permissions = append(user.Permissions, Permission{
 			BaseModel: am.NewModel(
-				am.WithID(am.ParseUUIDNull(da.PermissionID)),
+				am.WithID(am.UUIDVal(da.PermissionID)),
 				am.WithType(permissionType),
 			),
-			Name: da.PermissionName.String,
+			Name: am.StringVal(da.PermissionName),
 		})
 	}
 
@@ -115,15 +106,15 @@ func ToUserExt(da UserExtDA) User {
 func ToRoleDA(role Role) RoleDA {
 	return RoleDA{
 		ID:          role.ID(),
-		Name:        sql.NullString{String: role.Name, Valid: role.Name != ""},
-		Description: sql.NullString{String: role.Description, Valid: role.Description != ""},
-		ShortID:     sql.NullString{String: role.ShortID(), Valid: role.ShortID() != ""},
-		Status:      sql.NullString{String: role.Status, Valid: role.Status != ""},
+		Name:        role.Name,
+		Description: role.Description,
+		ShortID:     role.ShortID(),
+		Status:      role.Status,
 		Permissions: toPermissionIDs(role.Permissions),
-		CreatedBy:   sql.NullString{String: role.CreatedBy().String(), Valid: role.CreatedBy() != uuid.Nil},
-		UpdatedBy:   sql.NullString{String: role.UpdatedBy().String(), Valid: role.UpdatedBy() != uuid.Nil},
-		CreatedAt:   sql.NullTime{Time: role.CreatedAt(), Valid: !role.CreatedAt().IsZero()},
-		UpdatedAt:   sql.NullTime{Time: role.UpdatedAt(), Valid: !role.UpdatedAt().IsZero()},
+		CreatedBy:   am.UUIDPtr(role.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(role.UpdatedBy()),
+		CreatedAt:   am.TimePtr(role.CreatedAt()),
+		UpdatedAt:   am.TimePtr(role.UpdatedAt()),
 	}
 }
 
@@ -132,16 +123,16 @@ func ToRole(da RoleDA) Role {
 	return Role{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String), // Added
+			am.WithShortID(da.ShortID),
 			am.WithType(roleType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:          da.Name.String,
-		Description:   da.Description.String,
-		Status:        da.Status.String,
+		Name:          da.Name,
+		Description:   da.Description,
+		Status:        da.Status,
 		PermissionIDs: da.Permissions,
 		Permissions:   []Permission{},
 	}
@@ -160,23 +151,23 @@ func ToRoles(das []RoleDA) []Role {
 func ToRoleExt(da RoleExtDA) Role {
 	permission := Permission{
 		BaseModel: am.NewModel(
-			am.WithID(am.ParseUUIDNull(da.PermissionID)),
+			am.WithID(am.UUIDVal(da.PermissionID)),
 			am.WithType(permissionType),
 		),
-		Name: da.PermissionName.String,
+		Name: am.StringVal(da.PermissionName),
 	}
 
 	return Role{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
 			am.WithType(roleType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:        da.Name.String,
-		Description: da.Description.String,
+		Name:        da.Name,
+		Description: da.Description,
 		Status:      "active", // Default status since it's not in RoleExtDA
 		Permissions: []Permission{permission},
 	}
@@ -186,13 +177,13 @@ func ToRoleExt(da RoleExtDA) Role {
 func ToPermissionDA(permission Permission) PermissionDA {
 	return PermissionDA{
 		ID:          permission.ID(),
-		Name:        sql.NullString{String: permission.Name, Valid: permission.Name != ""},
-		Description: sql.NullString{String: permission.Description, Valid: permission.Description != ""},
-		ShortID:     sql.NullString{String: permission.ShortID(), Valid: permission.ShortID() != ""},
-		CreatedBy:   sql.NullString{String: permission.CreatedBy().String(), Valid: permission.CreatedBy() != uuid.Nil},
-		UpdatedBy:   sql.NullString{String: permission.UpdatedBy().String(), Valid: permission.UpdatedBy() != uuid.Nil},
-		CreatedAt:   sql.NullTime{Time: permission.CreatedAt(), Valid: !permission.CreatedAt().IsZero()},
-		UpdatedAt:   sql.NullTime{Time: permission.UpdatedAt(), Valid: !permission.UpdatedAt().IsZero()},
+		Name:        permission.Name,
+		Description: permission.Description,
+		ShortID:     permission.ShortID(),
+		CreatedBy:   am.UUIDPtr(permission.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(permission.UpdatedBy()),
+		CreatedAt:   am.TimePtr(permission.CreatedAt()),
+		UpdatedAt:   am.TimePtr(permission.UpdatedAt()),
 	}
 }
 
@@ -201,15 +192,15 @@ func ToPermission(da PermissionDA) Permission {
 	return Permission{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String), // Added
+			am.WithShortID(da.ShortID),
 			am.WithType(permissionType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:        da.Name.String,
-		Description: da.Description.String,
+		Name:        da.Name,
+		Description: da.Description,
 	}
 }
 
@@ -226,17 +217,17 @@ func ToPermissions(das []PermissionDA) []Permission {
 func ToResourceDA(resource Resource) ResourceDA {
 	return ResourceDA{
 		ID:          resource.ID(),
-		Name:        sql.NullString{String: resource.Name, Valid: resource.Name != ""},
-		Description: sql.NullString{String: resource.Description, Valid: resource.Description != ""},
-		Label:       sql.NullString{String: resource.Label, Valid: resource.Label != ""},
-		Type:        sql.NullString{String: resource.ResourceType, Valid: resource.ResourceType != ""},
-		URI:         sql.NullString{String: resource.URI, Valid: resource.URI != ""},
-		ShortID:     sql.NullString{String: resource.ShortID(), Valid: resource.ShortID() != ""},
+		Name:        resource.Name,
+		Description: resource.Description,
+		ShortID:     resource.ShortID(),
+		Label:       resource.Label,
+		Type:        resource.ResourceType,
+		URI:         resource.URI,
 		Permissions: toPermissionIDs(resource.Permissions),
-		CreatedBy:   sql.NullString{String: resource.CreatedBy().String(), Valid: resource.CreatedBy() != uuid.Nil},
-		UpdatedBy:   sql.NullString{String: resource.UpdatedBy().String(), Valid: resource.UpdatedBy() != uuid.Nil},
-		CreatedAt:   sql.NullTime{Time: resource.CreatedAt(), Valid: !resource.CreatedAt().IsZero()},
-		UpdatedAt:   sql.NullTime{Time: resource.UpdatedAt(), Valid: !resource.UpdatedAt().IsZero()},
+		CreatedBy:   am.UUIDPtr(resource.CreatedBy()),
+		UpdatedBy:   am.UUIDPtr(resource.UpdatedBy()),
+		CreatedAt:   am.TimePtr(resource.CreatedAt()),
+		UpdatedAt:   am.TimePtr(resource.UpdatedAt()),
 	}
 }
 
@@ -245,18 +236,18 @@ func ToResource(da ResourceDA) Resource {
 	return Resource{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
-			am.WithShortID(da.ShortID.String), // Added
+			am.WithShortID(da.ShortID),
 			am.WithType(resourceEntityType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:          da.Name.String,
-		Description:   da.Description.String,
-		Label:         da.Label.String,
-		ResourceType:  da.Type.String,
-		URI:           da.URI.String,
+		Name:          da.Name,
+		Description:   da.Description,
+		Label:         da.Label,
+		ResourceType:  da.Type,
+		URI:           da.URI,
 		PermissionIDs: da.Permissions,
 		Permissions:   []Permission{},
 	}
@@ -275,89 +266,91 @@ func ToResources(das []ResourceDA) []Resource {
 func ToResourceExt(da ResourceExtDA) Resource {
 	permission := Permission{
 		BaseModel: am.NewModel(
-			am.WithID(am.ParseUUIDNull(da.PermissionID)),
+			am.WithID(am.UUIDVal(da.PermissionID)),
 			am.WithType(permissionType),
 		),
-		Name: da.PermissionName.String,
+		Name: am.StringVal(da.PermissionName),
 	}
 
 	return Resource{
 		BaseModel: am.NewModel(
 			am.WithID(da.ID),
 			am.WithType(resourceEntityType),
-			am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-			am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-			am.WithCreatedAt(da.CreatedAt.Time),
-			am.WithUpdatedAt(da.UpdatedAt.Time),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
 		),
-		Name:          da.Name.String,
-		Description:   da.Description.String,
+		Name:          da.Name,
+		Description:   da.Description,
 		ResourceType:  "entity",
-		PermissionIDs: []uuid.UUID{am.ParseUUIDNull(da.PermissionID)},
+		PermissionIDs: []uuid.UUID{am.UUIDVal(da.PermissionID)},
 		Permissions:   []Permission{permission},
 	}
 }
 
-// OrgDA is the data access struct for Org, used for DB operations.
-type OrgDA struct {
-	ID               sql.NullString `db:"id"`
-	ShortID          string         `db:"short_id"`
-	Name             string         `db:"name"`
-	ShortDescription string         `db:"short_description"`
-	Description      string         `db:"description"`
-	CreatedBy        sql.NullString `db:"created_by"`
-	UpdatedBy        sql.NullString `db:"updated_by"`
-	CreatedAt        time.Time      `db:"created_at"`
-	UpdatedAt        time.Time      `db:"updated_at"`
+// ToOrgDA converts a Org business object to a OrgDA data access object
+func ToOrgDA(org Org) OrgDA {
+	return OrgDA{
+		ID:               org.ID(),
+		ShortID:          org.ShortID(),
+		Name:             org.Name,
+		ShortDescription: org.ShortDescription,
+		Description:      org.Description,
+		CreatedBy:        am.UUIDPtr(org.CreatedBy()),
+		UpdatedBy:        am.UUIDPtr(org.UpdatedBy()),
+		CreatedAt:        am.TimePtr(org.CreatedAt()),
+		UpdatedAt:        am.TimePtr(org.UpdatedAt()),
+	}
 }
 
-// ToOrg converts OrgDA to Org domain model.
+// ToOrg converts a OrgDA data access object to a Org business object
 func ToOrg(da OrgDA) Org {
-	model := am.NewModel(
-		am.WithID(am.ParseUUIDNull(da.ID)),
-		am.WithShortID(da.ShortID), // Added (da.ShortID is string)
-		am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-		am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-		am.WithCreatedAt(da.CreatedAt),
-		am.WithUpdatedAt(da.UpdatedAt),
-		am.WithType(orgEntityType),
-	)
 	return Org{
-		BaseModel:        model,
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(orgEntityType),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
 		Name:             da.Name,
 		ShortDescription: da.ShortDescription,
 		Description:      da.Description,
 	}
 }
 
-// ToOrgDA converts Org domain model to OrgDA for DB operations.
-func ToOrgDA(org Org) OrgDA {
-	return OrgDA{
-		ID:               sql.NullString{String: org.ID().String(), Valid: org.ID() != uuid.Nil},
-		ShortID:          org.ShortID(),
-		Name:             org.Name,
-		ShortDescription: org.ShortDescription,
-		Description:      org.Description,
-		CreatedBy:        sql.NullString{String: org.CreatedBy().String(), Valid: org.CreatedBy() != uuid.Nil},
-		UpdatedBy:        sql.NullString{String: org.UpdatedBy().String(), Valid: org.UpdatedBy() != uuid.Nil},
-		CreatedAt:        org.CreatedAt(),
-		UpdatedAt:        org.UpdatedAt(),
+// ToTeamDA converts a Team business object to a TeamDA data access object
+func ToTeamDA(team Team) TeamDA {
+	return TeamDA{
+		ID:               team.ID(),
+		ShortID:          team.ShortID(),
+		OrgID:            team.OrgID,
+		Name:             team.Name,
+		ShortDescription: team.ShortDescription,
+		Description:      team.Description,
+		CreatedBy:        am.UUIDPtr(team.CreatedBy()),
+		UpdatedBy:        am.UUIDPtr(team.UpdatedBy()),
+		CreatedAt:        am.TimePtr(team.CreatedAt()),
+		UpdatedAt:        am.TimePtr(team.UpdatedAt()),
 	}
 }
 
+// ToTeam converts a TeamDA data access object to a Team business object
 func ToTeam(da TeamDA) Team {
-	model := am.NewModel(
-		am.WithID(am.ParseUUIDNull(da.ID)),
-		am.WithShortID(da.ShortID), // Corrected: da.ShortID is string, not sql.NullString
-		am.WithCreatedBy(am.ParseUUIDNull(da.CreatedBy)),
-		am.WithUpdatedBy(am.ParseUUIDNull(da.UpdatedBy)),
-		am.WithCreatedAt(da.CreatedAt),
-		am.WithUpdatedAt(da.UpdatedAt),
-		am.WithType(teamEntityType),
-	)
 	return Team{
-		BaseModel:        model,
-		OrgID:            am.ParseUUIDNull(da.OrgID),
+		BaseModel: am.NewModel(
+			am.WithID(da.ID),
+			am.WithShortID(da.ShortID),
+			am.WithType(teamEntityType),
+			am.WithCreatedBy(am.UUIDVal(da.CreatedBy)),
+			am.WithUpdatedBy(am.UUIDVal(da.UpdatedBy)),
+			am.WithCreatedAt(am.TimeVal(da.CreatedAt)),
+			am.WithUpdatedAt(am.TimeVal(da.UpdatedAt)),
+		),
+		OrgID:            da.OrgID,
 		Name:             da.Name,
 		ShortDescription: da.ShortDescription,
 		Description:      da.Description,
@@ -378,11 +371,4 @@ func toPermissionIDs(perms []Permission) []uuid.UUID {
 		ids = append(ids, p.ID())
 	}
 	return ids
-}
-
-func derefTime(t *time.Time) time.Time {
-	if t == nil {
-		return time.Time{}
-	}
-	return *t
 }
