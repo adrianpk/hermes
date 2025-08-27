@@ -63,7 +63,7 @@ func NewWebHandler(tm *am.TemplateManager, flash *am.FlashManager, service Servi
 // After the am.FlashManager is fully functional, these functions will be removed.
 
 // Remove legacy AddFlash and SetFlash usage
-func (h *WebHandler) AddFlash(w http.ResponseWriter, r *http.Request, notificationType string, msg string) error {
+func (h *WebHandler) AddFlash(w http.ResponseWriter, r *http.Request, notificationType, msg string) error {
 	// Legacy method, now a no-op for compatibility
 	return nil
 }

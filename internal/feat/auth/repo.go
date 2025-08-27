@@ -15,16 +15,17 @@ type Repo interface {
 
 	GetUsers(ctx context.Context) ([]User, error)
 	GetUser(ctx context.Context, id uuid.UUID, preload ...bool) (User, error)
+	GetUserWithPermissions(ctx context.Context, id uuid.UUID) (User, error)
 	CreateUser(ctx context.Context, user User) error
 	UpdateUser(ctx context.Context, user User) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	UpdatePassword(ctx context.Context, user User) error
 	GetUserAssignedRoles(ctx context.Context, userID uuid.UUID, contextType, contextID string) ([]Role, error)
 	GetUserUnassignedRoles(ctx context.Context, userID uuid.UUID, contextType, contextID string) ([]Role, error)
-	AddRole(ctx context.Context, userID uuid.UUID, roleID uuid.UUID, contextType, contextID string) error
-	RemoveRole(ctx context.Context, userID uuid.UUID, roleID uuid.UUID, contextType, contextID string) error
+	AddRole(ctx context.Context, userID, roleID uuid.UUID, contextType, contextID string) error
+	RemoveRole(ctx context.Context, userID, roleID uuid.UUID, contextType, contextID string) error
 	AddPermissionToUser(ctx context.Context, userID uuid.UUID, permission Permission) error
-	RemovePermissionFromUser(ctx context.Context, userID uuid.UUID, permissionID uuid.UUID) error
+	RemovePermissionFromUser(ctx context.Context, userID, permissionID uuid.UUID) error
 	GetUserRole(ctx context.Context, userID, roleID uuid.UUID) (Role, error)
 	GetUserAssignedPermissions(ctx context.Context, userID uuid.UUID) ([]Permission, error)
 	GetUserIndirectPermissions(ctx context.Context, userID uuid.UUID) ([]Permission, error)
@@ -40,8 +41,8 @@ type Repo interface {
 	DeleteRole(ctx context.Context, roleID uuid.UUID) error
 	GetRolePermissions(ctx context.Context, roleID uuid.UUID) ([]Permission, error)
 	GetRoleUnassignedPermissions(ctx context.Context, roleID uuid.UUID) ([]Permission, error)
-	AddPermissionToRole(ctx context.Context, roleID uuid.UUID, permission Permission) error
-	RemovePermissionFromRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error
+	AddPermissionToRole(ctx context.Context, roleID, permissionID uuid.UUID) error
+	RemovePermissionFromRole(ctx context.Context, roleID, permissionID uuid.UUID) error
 
 	// SECTION: Permission-related methods
 
@@ -61,12 +62,16 @@ type Repo interface {
 	GetResourcePermissions(ctx context.Context, resourceID uuid.UUID) ([]Permission, error)
 	GetResourceUnassignedPermissions(ctx context.Context, resourceID uuid.UUID) ([]Permission, error)
 	AddPermissionToResource(ctx context.Context, resourceID uuid.UUID, permission Permission) error
-	RemovePermissionFromResource(ctx context.Context, resourceID uuid.UUID, permissionID uuid.UUID) error
+	RemovePermissionFromResource(ctx context.Context, resourceID, permissionID uuid.UUID) error
 
 	// SECTION: Organization-related methods
+	GetAllOrgs(ctx context.Context) ([]Org, error)
+	GetOrg(ctx context.Context, id uuid.UUID) (Org, error)
 	CreateOrg(ctx context.Context, org Org) error
-	AddOrgOwner(ctx context.Context, orgID uuid.UUID, userID uuid.UUID) error
-	RemoveOrgOwner(ctx context.Context, orgID uuid.UUID, userID uuid.UUID) error
+	UpdateOrg(ctx context.Context, org Org) error
+	DeleteOrg(ctx context.Context, id uuid.UUID) error
+	AddOrgOwner(ctx context.Context, orgID, userID uuid.UUID) error
+	RemoveOrgOwner(ctx context.Context, orgID, userID uuid.UUID) error
 	GetDefaultOrg(ctx context.Context) (Org, error)
 	GetOrgOwners(ctx context.Context, orgID uuid.UUID) ([]User, error)
 	GetOrgUnassignedOwners(ctx context.Context, orgID uuid.UUID) ([]User, error)
@@ -77,10 +82,12 @@ type Repo interface {
 	DeleteTeam(ctx context.Context, id uuid.UUID) error
 	GetTeamMembers(ctx context.Context, teamID uuid.UUID) ([]User, error)
 	GetTeamUnassignedUsers(ctx context.Context, teamID uuid.UUID) ([]User, error)
-	AddUserToTeam(ctx context.Context, teamID uuid.UUID, userID uuid.UUID, relationType string) error
-	RemoveUserFromTeam(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) error
+	AddUserToTeam(ctx context.Context, teamID, userID uuid.UUID, relationType string) error
+	RemoveUserFromTeam(ctx context.Context, teamID, userID uuid.UUID) error
 
 	// Team member roles methods
-	GetUserContextualRoles(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) ([]Role, error)
-	GetUserContextualUnassignedRoles(ctx context.Context, teamID uuid.UUID, userID uuid.UUID) ([]Role, error)
+	GetUserTeams(ctx context.Context, userID uuid.UUID) ([]Team, error)
+	GetUserContextualRoles(ctx context.Context, teamID, userID uuid.UUID) ([]Role, error)
+	GetUserContextualUnassignedRoles(ctx context.Context, teamID, userID uuid.UUID) ([]Role, error)
+	GetUserContextualPermissions(ctx context.Context, teamID, userID uuid.UUID) ([]Permission, error)
 }

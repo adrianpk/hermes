@@ -97,7 +97,7 @@ func (cfg *Config) StrVal(key string, reload ...bool) (value string, ok bool) {
 // StrValOrDef retrieves the value of a specific namespaced environment variable or CLI flag.
 // If the key is not found, it returns the provided default value.
 // If reload is true, it re-reads the values from the environment and CLI flags.
-func (cfg *Config) StrValOrDef(key string, defVal string, reload ...bool) (value string) {
+func (cfg *Config) StrValOrDef(key, defVal string, reload ...bool) (value string) {
 	vals := cfg.get(false)
 	if len(reload) > 0 && reload[0] {
 		vals = cfg.get(true)

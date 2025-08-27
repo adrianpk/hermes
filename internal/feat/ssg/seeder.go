@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	ssgFeat = "ssg"
+)
+
 type Seeder struct {
 	*am.JSONSeeder
 	repo Repo
@@ -40,7 +44,6 @@ func (s *Seeder) SeedAll(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to load JSON seeds: %w", err)
 	}
-	const ssgFeat = "ssg"
 	for feature, seeds := range byFeature {
 		if feature != ssgFeat {
 			continue
@@ -81,7 +84,7 @@ func (s *Seeder) seedData(ctx context.Context, data *SeedData) error {
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedLayouts: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Seed layouts and build ref->UUID map
 	layoutRefToID := make(map[string]uuid.UUID)
@@ -93,10 +96,10 @@ func (s *Seeder) seedData(ctx context.Context, data *SeedData) error {
 			return fmt.Errorf("error inserting layout: %w", err)
 		}
 		if l.Name != "" {
-			layoutRefToID[l.Name] = l.ID()
+			layoutRefToID[l.Name] = l.GetID()
 		}
 		if l.RefValue != "" {
-			layoutRefToID[l.RefValue] = l.ID()
+			layoutRefToID[l.RefValue] = l.GetID()
 		}
 	}
 

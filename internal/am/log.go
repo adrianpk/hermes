@@ -24,7 +24,7 @@ const (
 	colorGreen     = "\033[32m"
 	colorYellow    = "\033[33m"
 	colorBlue      = "\033[34m"
-	colorTimestamp  = "\033[90m"
+	colorTimestamp = "\033[90m"
 )
 
 const (
@@ -70,41 +70,41 @@ func (l *BaseLogger) SetLogLevel(level LogLevel) {
 
 func (l *BaseLogger) Debug(v ...any) {
 	if l.logLevel <= DebugLevel {
-		l.debug.Output(2, formatLogMessage(debugPrefix, v...))
+		_ = l.debug.Output(2, formatLogMessage(debugPrefix, v...))
 	}
 }
 
 func (l *BaseLogger) Debugf(format string, a ...any) {
 	if l.logLevel <= DebugLevel {
 		message := fmt.Sprintf(format, a...)
-		l.debug.Output(2, formatLogMessage(debugPrefix, message))
+		_ = l.debug.Output(2, formatLogMessage(debugPrefix, message))
 	}
 }
 
 func (l *BaseLogger) Info(v ...any) {
 	if l.logLevel <= InfoLevel {
-		l.info.Output(2, formatLogMessage(infoPrefix, v...))
+		_ = l.info.Output(2, formatLogMessage(infoPrefix, v...))
 	}
 }
 
 func (l *BaseLogger) Infof(format string, a ...any) {
 	if l.logLevel <= InfoLevel {
 		message := fmt.Sprintf(format, a...)
-		l.info.Output(2, formatLogMessage(infoPrefix, message))
+		_ = l.info.Output(2, formatLogMessage(infoPrefix, message))
 	}
 }
 
 func (l *BaseLogger) Error(v ...any) {
 	if l.logLevel <= ErrorLevel {
 		message := fmt.Sprint(v...)
-		l.error.Output(2, formatLogMessage(errorPrefix, message))
+		_ = l.error.Output(2, formatLogMessage(errorPrefix, message))
 	}
 }
 
 func (l *BaseLogger) Errorf(format string, a ...any) {
 	if l.logLevel <= ErrorLevel {
 		message := fmt.Sprintf(format, a...)
-		l.error.Output(2, formatLogMessage(errorPrefix, message))
+		_ = l.error.Output(2, formatLogMessage(errorPrefix, message))
 	}
 }
 

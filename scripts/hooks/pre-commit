@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "Running make format..."
+make format || exit 1
+
+echo "Running make lint..."
+make lint || exit 1
+
+echo "Running make test..."
+make test || exit 1
+

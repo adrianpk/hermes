@@ -5,3 +5,4 @@ main
 /bak/
 /tmp/
 __debug_bin*
+.env

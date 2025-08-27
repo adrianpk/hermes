@@ -108,8 +108,7 @@ func NewMenu(path string) *Menu {
 
 // AddListItem adds a new MenuItem for listing resources.
 func (m *Menu) AddListItem(resource Resource, text ...string) {
-	// TODO: Use a pluralization library to get the plural form of the resource type.
-	action := fmt.Sprintf("list-%ss", resource.Type())
+	action := fmt.Sprintf("list-%s", resource.TypePlural())
 	btnText := "Back"
 	if len(text) > 0 {
 		btnText = text[0]
@@ -156,7 +155,7 @@ func (m *Menu) AddShowItem(resource Resource, text ...string) {
 		Text:  btnText,
 		Style: BtnPrimaryStyle,
 		QueryParams: map[string]string{
-			"id": resource.ID().String(),
+			"id": resource.GetID().String(),
 		},
 	})
 }
@@ -176,7 +175,7 @@ func (m *Menu) AddEditItem(resource Resource, text ...string) {
 		Text:  btnText,
 		Style: BtnPrimaryStyle,
 		QueryParams: map[string]string{
-			"id": resource.ID().String(),
+			"id": resource.GetID().String(),
 		},
 	})
 }
@@ -198,7 +197,7 @@ func (m *Menu) AddDeleteItem(resource Resource, text ...string) {
 		IsForm:    true,
 		CSRFToken: m.CSRFToken,
 		QueryParams: map[string]string{
-			"id": resource.ID().String(),
+			"id": resource.GetID().String(),
 		},
 	})
 }

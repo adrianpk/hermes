@@ -18,10 +18,8 @@ const (
 	engine    = "sqlite"
 )
 
-var (
-	//go:embed assets
-	assetsFS embed.FS
-)
+//go:embed assets
+var assetsFS embed.FS
 
 func main() {
 	ctx := context.Background()
@@ -38,29 +36,38 @@ func main() {
 
 	repo := sqlite.NewHermesRepo(queryManager)
 	migrator := am.NewMigrator(assetsFS, engine)
-	seeder := am.NewSeeder(assetsFS, engine)
 	fileServer := am.NewFileServer(assetsFS)
 
 	app.MountFileServer("/", fileServer)
+
+	// API router
+	apiRouter := am.NewAPIRouter("api-router", opts...)
 
 	// Auth feature
 	authService := auth.NewService(repo)
 	authWebHandler := auth.NewWebHandler(templateManager, fm, authService)
 	authWebRouter := auth.NewWebRouter(authWebHandler)
 	authSeeder := auth.NewSeeder(assetsFS, engine, repo)
-
+	authAPIHandler := auth.NewAPIHandler("auth-api-handler", authService, opts...)
+	authAPIRouter := auth.NewAPIRouter(authAPIHandler, nil)
+	apiRouter.Mount("/auth", authAPIRouter)
 	app.MountWeb("/auth", authWebRouter)
 
 	// SSG feature
-	ssgService := ssg.NewService(repo)
-	ssgWebHandler := ssg.NewWebHandler(templateManager, fm, ssgService)
-	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, append(fm.Middlewares(), am.LogHeadersMw))
+	ssgBFF := ssg.NewBFF(templateManager, fm, opts...)
+	ssgWebRouter := ssg.NewWebRouter(ssgBFF, append(fm.Middlewares(), am.LogHeadersMw))
 	ssgSeeder := ssg.NewSeeder(assetsFS, engine, repo)
+	ssgService := ssg.NewService(repo)
+	ssgAPIHandler := ssg.NewAPIHandler("ssg-api-handler", ssgService)
+	ssgAPIRouter := ssg.NewAPIRouter(ssgAPIHandler, nil)
+	apiRouter.Mount("/ssg", ssgAPIRouter)
 	app.MountWeb("/ssg", ssgWebRouter)
+
+	// Mount main API router
+	app.MountAPI("v1", "/", apiRouter)
 
 	// Add deps
 	app.Add(migrator)
-	app.Add(seeder)
 	app.Add(fm)
 	app.Add(fileServer)
 	app.Add(queryManager)
@@ -70,10 +77,15 @@ func main() {
 	app.Add(authWebHandler)
 	app.Add(authWebRouter)
 	app.Add(authSeeder)
-	app.Add(ssgService)
-	app.Add(ssgWebHandler)
+	app.Add(authAPIHandler)
+	app.Add(authAPIRouter)
+	app.Add(ssgBFF)
 	app.Add(ssgWebRouter)
 	app.Add(ssgSeeder)
+	app.Add(ssgService)
+	app.Add(ssgAPIHandler)
+	app.Add(ssgAPIRouter)
+	app.Add(apiRouter)
 
 	err := app.Setup(ctx)
 	if err != nil {

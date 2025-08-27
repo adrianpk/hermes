@@ -3,31 +3,31 @@ package am
 import (
 	"strings"
 	"time"
-	"unicode" // Added for normalize function
+	"unicode"
 
 	"github.com/google/uuid"
 )
 
-// Model interface composes Identifiable, Auditable, and Seedable interfaces.
+// Model interface composes Identifiable, Auditable, and Stampable interfaces.
 type Model interface {
 	Identifiable
 	Auditable
 	Stampable
-	Seedable
+	// Seedable
 }
 
 // Identifiable interface represents an entity with an ID, Slug, and TypeID.
 type Identifiable interface {
 	// Type returns the type of the entity.
 	Type() string
-	// ID returns the unique identifier of the entity.
-	ID() uuid.UUID
+	// GetID returns the unique identifier of the entity.
+	GetID() uuid.UUID
 	// GenID generates and sets the unique identifier of the entity if it is not set yet.
 	GenID()
 	// SetID sets the unique identifier of the entity.
 	SetID(id uuid.UUID, force ...bool)
 	// ShortID returns the short ID portion of the slug.
-	ShortID() string
+	GetShortID() string
 	// GenShortID generates and sets the short ID if it is not set yet.
 	GenShortID()
 	// SetShortID sets the short ID of the entity.
@@ -41,13 +41,18 @@ type Identifiable interface {
 // Auditable interface represents an entity with audit information.
 type Auditable interface {
 	// CreatedBy returns the UUID of the user who created the entity.
-	CreatedBy() uuid.UUID
+	GetCreatedBy() uuid.UUID
 	// UpdatedBy returns the UUID of the user who last updated the entity.
-	UpdatedBy() uuid.UUID
+	GetUpdatedBy() uuid.UUID
 	// CreatedAt returns the creation time of the entity.
-	CreatedAt() time.Time
+	GetCreatedAt() time.Time
 	// UpdatedAt returns the last update time of the entity.
-	UpdatedAt() time.Time
+	GetUpdatedAt() time.Time
+	// Setters for audit fields
+	SetCreatedBy(uuid.UUID)
+	SetUpdatedBy(uuid.UUID)
+	SetCreatedAt(time.Time)
+	SetUpdatedAt(time.Time)
 }
 
 type Stampable interface {
@@ -63,221 +68,50 @@ type Seedable interface {
 	SetRef(ref string)
 }
 
-type BaseModel struct {
-	modelType string
-	id        uuid.UUID
-	shortID   string
-	createdBy uuid.UUID
-	updatedBy uuid.UUID
-	createdAt time.Time
-	updatedAt time.Time
-	RefValue  string `json:"ref"`
-}
+// --- Functional Helpers ---
 
-// ModelOption defines a functional option for configuring a BaseModel.
-type ModelOption func(*BaseModel)
-
-// WithType sets the type of the BaseModel.
-func WithType(t string) ModelOption {
-	return func(m *BaseModel) {
-		m.modelType = t
+// GenID generates a new UUID for a model if it doesn't have one.
+func GenID(i Identifiable) {
+	if i.GetID() == uuid.Nil {
+		i.SetID(uuid.New(), true) // Force setting
 	}
 }
 
-// WithID sets the id of the BaseModel.
-func WithID(id uuid.UUID) ModelOption {
-	return func(m *BaseModel) {
-		m.id = id
-	}
-}
-
-// WithIDString sets the id of the BaseModel from a string UUID.
-func WithIDString(idStr string) ModelOption {
-	return func(m *BaseModel) {
-		if parsed, err := uuid.Parse(idStr); err == nil {
-			m.id = parsed
-		}
-	}
-}
-
-// WithShortID sets the shortID of the BaseModel.
-func WithShortID(shortID string) ModelOption {
-	return func(m *BaseModel) {
-		m.shortID = shortID
-	}
-}
-
-// WithCreatedBy sets the createdBy field of the BaseModel.
-func WithCreatedBy(createdBy uuid.UUID) ModelOption {
-	return func(m *BaseModel) {
-		m.createdBy = createdBy
-	}
-}
-
-// WithUpdatedBy sets the updatedBy field of the BaseModel.
-func WithUpdatedBy(updatedBy uuid.UUID) ModelOption {
-	return func(m *BaseModel) {
-		m.updatedBy = updatedBy
-	}
-}
-
-// WithCreatedAt sets the createdAt field of the BaseModel.
-func WithCreatedAt(createdAt time.Time) ModelOption {
-	return func(m *BaseModel) {
-		m.createdAt = createdAt
-	}
-}
-
-// WithUpdatedAt sets the updatedAt field of the BaseModel.
-func WithUpdatedAt(updatedAt time.Time) ModelOption {
-	return func(m *BaseModel) {
-		m.updatedAt = updatedAt
-	}
-}
-
-// NewModel creates a new BaseModel with the provided options.
-func NewModel(options ...ModelOption) *BaseModel {
-	m := &BaseModel{}
-	for _, opt := range options {
-		opt(m)
-	}
-
-	return m
-}
-
-// Type returns the type of the entity.
-func (m *BaseModel) Type() string {
-	if m.modelType == "" {
-		return "model"
-	}
-
-	return m.modelType
-}
-
-// SetType sets the type of the entity.
-func (m *BaseModel) SetType(t string) {
-	m.modelType = t
-}
-
-// ID returns the unique identifier of the entity.
-func (m *BaseModel) ID() uuid.UUID {
-	return m.id
-}
-
-// GenID generates and sets the unique identifier of the entity if it is not set
-// yet.
-func (m *BaseModel) GenID() {
-	if m.id == uuid.Nil {
-		m.id = uuid.New()
-	}
-}
-
-// SetID sets the unique identifier of the entity.
-func (m *BaseModel) SetID(id uuid.UUID, force ...bool) {
-	shouldForce := len(force) > 0 && force[0]
-	if m.id == uuid.Nil || (shouldForce && id != uuid.Nil) {
-		m.id = id
-	}
-}
-
-// ShortID returns the short ID portion of the slug.
-func (m *BaseModel) ShortID() string {
-	return m.shortID
-}
-
-// GenShortID generates and sets the short ID if it is not set yet.
-func (m *BaseModel) GenShortID() {
-	if m.shortID == "" {
+// GenShortID generates a new short ID for a model if it doesn't have one.
+func GenShortID(i Identifiable) {
+	if i.GetShortID() == "" {
 		newUUID := uuid.New()
 		segments := strings.Split(newUUID.String(), "-")
-		m.shortID = segments[len(segments)-1]
+		i.SetShortID(segments[len(segments)-1], true) // Force setting
 	}
 }
 
-// SetShortID sets the short ID of the entity.
-func (m *BaseModel) SetShortID(shortID string, force ...bool) {
-	shouldForce := len(force) > 0 && force[0]
-	if m.shortID == "" || shouldForce {
-		m.shortID = shortID
+// SetCreateValues sets the initial values for a new model.
+func SetCreateValues(m Model, userID ...uuid.UUID) {
+	GenID(m)
+	GenShortID(m)
+	now := time.Now()
+	m.SetCreatedAt(now)
+	m.SetUpdatedAt(now)
+	if len(userID) > 0 && userID[0] != uuid.Nil {
+		m.SetCreatedBy(userID[0])
+		m.SetUpdatedBy(userID[0])
 	}
 }
 
-// TypeID returns a universal identifier for a specific model instance.
-// It combines the normalized model type with its ShortID.
-// This is useful for uniquely referencing an entity across different model types.
-func (m *BaseModel) TypeID() string {
-	return Normalize(m.Type()) + "-" + m.ShortID()
-}
-
-// Slug returns a human-readable, URL-friendly string identifier for the entity.
-// It typically combines a normalized, recognizable short text (often derived from a title or name)
-// with a unique, more random component (like a short ID) to ensure uniqueness
-// while maintaining readability. This makes it suitable for use in URLs or as an external reference.
-func (m *BaseModel) Slug() string {
-	return Normalize(m.Type()) + "-" + m.ShortID()
-}
-
-// GenCreateValues sets the values for creation.
-// If a userID is provided, it sets the CreatedBy field.
-func (m *BaseModel) GenCreateValues(userID ...uuid.UUID) { // Modified
-	m.GenID()
-	m.GenShortID()
-	m.createdAt = time.Now()
-	m.updatedAt = m.createdAt
+// SetUpdateValues updates the timestamp for a model modification.
+func SetUpdateValues(m Model, userID ...uuid.UUID) {
+	m.SetUpdatedAt(time.Now())
 	if len(userID) > 0 {
-		m.createdBy = userID[0]
-		m.updatedBy = userID[0]
+		m.SetUpdatedBy(userID[0])
 	}
 }
 
-// GenUpdateValues sets the values for an update.
-// If a userID is provided, it sets the UpdatedBy field.
-func (m *BaseModel) GenUpdateValues(userID ...uuid.UUID) { // Modified
-	m.updatedAt = time.Now()
-	if len(userID) > 0 {
-		m.updatedBy = userID[0]
-	}
-}
-
-// CreatedBy returns the UUID of the user who created the entity.
-func (m *BaseModel) CreatedBy() uuid.UUID {
-	return m.createdBy
-}
-
-// UpdatedBy returns the UUID of the user who last updated the entity.
-func (m *BaseModel) UpdatedBy() uuid.UUID {
-	return m.updatedBy
-}
-
-// CreatedAt returns the creation time of the entity.
-func (m *BaseModel) CreatedAt() time.Time {
-	return m.createdAt
-}
-
-// UpdatedAt returns the last update time of the entity.
-func (m *BaseModel) UpdatedAt() time.Time {
-	return m.updatedAt
-}
-
-func (m *BaseModel) Ref() string {
-	return m.RefValue
-}
-
-func (m *BaseModel) SetRef(ref string) {
-	m.RefValue = ref
-}
-
-// IsZero returns true if the BaseModel is uninitialized (i.e., its ID is a zero UUID).
-func (m *BaseModel) IsZero() bool {
-	return m.id == uuid.Nil
-}
-
-// normalize replaces space-like characters or non-ASCII characters with '-'
-// and converts the string to lowercase.
-func Normalize(s string) string {
+// Normalize utility function
+func Normalize(str string) string {
 	var b strings.Builder
-	b.Grow(len(s))
-	for _, r := range s {
+	b.Grow(len(str))
+	for _, r := range str {
 		if unicode.IsSpace(r) {
 			b.WriteRune('-')
 		} else if r > unicode.MaxASCII {
@@ -287,4 +121,11 @@ func Normalize(s string) string {
 		}
 	}
 	return strings.ToLower(b.String())
+}
+
+func DefaultType(currentType string) string {
+	if currentType == "" {
+		return "model"
+	}
+	return currentType
 }

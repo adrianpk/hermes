@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"net/http"
-	"time"
 
 	"github.com/adrianpk/hermes/internal/am"
 	"github.com/google/uuid"
@@ -85,14 +84,7 @@ func (h *WebHandler) CreateResource(w http.ResponseWriter, r *http.Request) {
 	resourceType := r.FormValue("type")
 
 	resource := NewResource(name, description, resourceType)
-	resource.BaseModel = am.NewModel(
-		am.WithID(resource.ID()),
-		am.WithCreatedBy(uuid.New()),
-		am.WithUpdatedBy(uuid.New()),
-		am.WithCreatedAt(time.Now()),
-		am.WithUpdatedAt(time.Now()),
-	)
-
+	resource.GenCreateValues()
 	err := h.service.CreateResource(ctx, resource)
 	if err != nil {
 		h.Err(w, err, am.ErrCannotCreateResource, http.StatusInternalServerError)
@@ -124,7 +116,7 @@ func (h *WebHandler) ShowResource(w http.ResponseWriter, r *http.Request) {
 	menu.AddListItem(resource)
 	menu.AddEditItem(resource)
 	menu.AddDeleteItem(resource)
-	menu.AddGenericItem("list-resource-permissions", resource.ID().String(), "Permissions")
+	menu.AddGenericItem("list-resource-permissions", resource.GetID().String(), "Permissions")
 
 	tmpl, err := h.tm.Get("auth", "show-resource")
 	if err != nil {
@@ -207,14 +199,7 @@ func (h *WebHandler) UpdateResource(w http.ResponseWriter, r *http.Request) {
 
 	resource.Name = name
 	resource.Description = description
-	resource.BaseModel = am.NewModel(
-		am.WithID(resource.ID()),
-		am.WithType(resourceEntityType),
-		am.WithCreatedBy(resource.CreatedBy()),
-		am.WithUpdatedBy(uuid.New()),
-		am.WithCreatedAt(resource.CreatedAt()),
-		am.WithUpdatedAt(time.Now()),
-	)
+	resource.GenUpdateValues()
 
 	if err := h.service.UpdateResource(r.Context(), resource); err != nil {
 		h.Err(w, err, am.ErrCannotUpdateResource, http.StatusInternalServerError)
@@ -276,7 +261,7 @@ func (h *WebHandler) ListResourcePermissions(w http.ResponseWriter, r *http.Requ
 		Permissions          []Permission
 		AvailablePermissions []Permission
 	}{
-		ID:                   resource.ID(),
+		ID:                   resource.GetID(),
 		Name:                 resource.Name,
 		Description:          resource.Description,
 		Permissions:          assigned,
@@ -288,7 +273,7 @@ func (h *WebHandler) ListResourcePermissions(w http.ResponseWriter, r *http.Requ
 	menu.AddListItem(resource)
 	menu.AddEditItem(resource)
 	menu.AddDeleteItem(resource)
-	menu.AddGenericItem("list-resource-permissions", resource.ID().String(), "Permissions")
+	menu.AddGenericItem("list-resource-permissions", resource.GetID().String(), "Permissions")
 
 	tmpl, err := h.tm.Get("auth", "list-resource-permissions")
 	if err != nil {

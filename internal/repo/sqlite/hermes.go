@@ -10,9 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	key = am.Key
-)
+var key = am.Key
 
 type HermesRepo struct {
 	*am.BaseRepo

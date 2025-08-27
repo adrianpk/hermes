@@ -45,6 +45,7 @@ func (s *Seeder) Setup(ctx context.Context) error {
 
 // SeedAll loads and applies all auth seeds in a single transaction.
 func (s *Seeder) SeedAll(ctx context.Context) error {
+	s.Log().Info("Seeding Auth data...")
 	byFeature, err := s.JSONSeeder.LoadJSONSeeds()
 	if err != nil {
 		return fmt.Errorf("failed to load JSON seeds: %w", err)
@@ -98,6 +99,11 @@ func (s *Seeder) seedData(ctx context.Context, data *SeedData) error {
 	if err != nil {
 		return err
 	}
+
+	b, _ := json.MarshalIndent(userRefMap, "", "  ")
+	s.Log().Debug("=== [SEED] userRefMap after seedUsers ===")
+	s.Log().Debug(string(b))
+
 	err = s.seedOrgs(ctx, data, orgRefMap)
 	if err != nil {
 		return err
@@ -145,7 +151,7 @@ func (s *Seeder) seedData(ctx context.Context, data *SeedData) error {
 // --- Helper functions for each entity type ---
 func (s *Seeder) withEncryptionKey(ctx context.Context) context.Context {
 	key := s.Cfg().ByteSliceVal("sec.encryption.key")
-	return context.WithValue(ctx, "encryptionKey", key)
+	return context.WithValue(ctx, am.EncryptionKeyCtxKey, key)
 }
 
 func (s *Seeder) seedUsers(ctx context.Context, data *SeedData, userRefMap map[string]uuid.UUID) error {
@@ -153,7 +159,7 @@ func (s *Seeder) seedUsers(ctx context.Context, data *SeedData, userRefMap map[s
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedUsers: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding users: start")
 	defer s.Log().Debug("Seeding users: end")
 	for i := range data.Users {
@@ -168,7 +174,7 @@ func (s *Seeder) seedUsers(ctx context.Context, data *SeedData, userRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting user: %w", err)
 		}
-		userRefMap[u.Ref()] = u.ID()
+		userRefMap[u.Ref()] = u.GetID()
 	}
 	return tx.Commit()
 }
@@ -178,7 +184,7 @@ func (s *Seeder) seedRoles(ctx context.Context, data *SeedData, roleRefMap map[s
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedRoles: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding roles: start")
 	defer s.Log().Debug("Seeding roles: end")
 	for i := range data.Roles {
@@ -188,7 +194,7 @@ func (s *Seeder) seedRoles(ctx context.Context, data *SeedData, roleRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting role: %w", err)
 		}
-		roleRefMap[r.Ref()] = r.ID()
+		roleRefMap[r.Ref()] = r.GetID()
 	}
 	return tx.Commit()
 }
@@ -198,7 +204,7 @@ func (s *Seeder) seedPermissions(ctx context.Context, data *SeedData, permRefMap
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedPermissions: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding permissions: start")
 	defer s.Log().Debug("Seeding permissions: end")
 	for i := range data.Permissions {
@@ -208,7 +214,7 @@ func (s *Seeder) seedPermissions(ctx context.Context, data *SeedData, permRefMap
 		if err != nil {
 			return fmt.Errorf("error inserting permission: %w", err)
 		}
-		permRefMap[p.Ref()] = p.ID()
+		permRefMap[p.Ref()] = p.GetID()
 	}
 	return tx.Commit()
 }
@@ -218,7 +224,7 @@ func (s *Seeder) seedOrgs(ctx context.Context, data *SeedData, orgRefMap map[str
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedOrgs: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding orgs: start")
 	defer s.Log().Debug("Seeding orgs: end")
 	for i := range data.Orgs {
@@ -228,7 +234,7 @@ func (s *Seeder) seedOrgs(ctx context.Context, data *SeedData, orgRefMap map[str
 		if err != nil {
 			return fmt.Errorf("error inserting org: %w", err)
 		}
-		orgRefMap[o.Ref()] = o.ID()
+		orgRefMap[o.Ref()] = o.GetID()
 	}
 	b, _ := json.MarshalIndent(orgRefMap, "", "  ")
 	s.Log().Debug("=== [SEED] SeedData state before commit ===")
@@ -236,12 +242,12 @@ func (s *Seeder) seedOrgs(ctx context.Context, data *SeedData, orgRefMap map[str
 	return tx.Commit()
 }
 
-func (s *Seeder) seedTeams(ctx context.Context, data *SeedData, teamRefMap map[string]uuid.UUID, orgRefMap map[string]uuid.UUID) error {
+func (s *Seeder) seedTeams(ctx context.Context, data *SeedData, teamRefMap, orgRefMap map[string]uuid.UUID) error {
 	ctx, tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedTeams: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding teams: start")
 	defer s.Log().Debug("Seeding teams: end")
 	for i := range data.Teams {
@@ -257,7 +263,7 @@ func (s *Seeder) seedTeams(ctx context.Context, data *SeedData, teamRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting team: %w", err)
 		}
-		teamRefMap[t.Ref()] = t.ID()
+		teamRefMap[t.Ref()] = t.GetID()
 		b, _ := json.MarshalIndent(teamRefMap, "", "  ")
 		s.Log().Debug("=== [SEED] SeedData state before commit ===")
 		s.Log().Debug(string(b))
@@ -270,7 +276,7 @@ func (s *Seeder) seedResources(ctx context.Context, data *SeedData, resourceRefM
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedResources: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding resources: start")
 	defer s.Log().Debug("Seeding resources: end")
 	for i := range data.Resources {
@@ -280,7 +286,7 @@ func (s *Seeder) seedResources(ctx context.Context, data *SeedData, resourceRefM
 		if err != nil {
 			return fmt.Errorf("error inserting resource: %w", err)
 		}
-		resourceRefMap[r.Ref()] = r.ID()
+		resourceRefMap[r.Ref()] = r.GetID()
 	}
 	return tx.Commit()
 }
@@ -290,7 +296,7 @@ func (s *Seeder) seedUserRoles(ctx context.Context, data *SeedData, userRefMap, 
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedUserRoles: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding user roles: start")
 	defer s.Log().Debug("Seeding user roles: end")
 	for _, ur := range data.UserRoles {
@@ -312,7 +318,7 @@ func (s *Seeder) seedRolePermissions(ctx context.Context, data *SeedData, roleRe
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedRolePermissions: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding role permissions: start")
 	defer s.Log().Debug("Seeding role permissions: end")
 	for _, rp := range data.RolePermissions {
@@ -321,11 +327,7 @@ func (s *Seeder) seedRolePermissions(ctx context.Context, data *SeedData, roleRe
 		if !ok1 || !ok2 {
 			return fmt.Errorf("error finding role or permission ref for role_permission: %+v", rp)
 		}
-		perm, err := s.repo.GetPermission(ctx, permID)
-		if err != nil {
-			return fmt.Errorf("error getting permission: %w", err)
-		}
-		err = s.repo.AddPermissionToRole(ctx, roleID, perm)
+		err = s.repo.AddPermissionToRole(ctx, roleID, permID)
 		if err != nil {
 			return fmt.Errorf("error adding permission to role: %w", err)
 		}
@@ -338,7 +340,7 @@ func (s *Seeder) seedUserPermissions(ctx context.Context, data *SeedData, userRe
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedUserPermissions: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding user permissions: start")
 	defer s.Log().Debug("Seeding user permissions: end")
 	for _, up := range data.UserPermissions {
@@ -364,7 +366,7 @@ func (s *Seeder) seedResourcePermissions(ctx context.Context, data *SeedData, re
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedResourcePermissions: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding resource permissions: start")
 	defer s.Log().Debug("Seeding resource permissions: end")
 	for _, rp := range data.ResourcePermissions {
@@ -390,7 +392,7 @@ func (s *Seeder) seedOrgOwners(ctx context.Context, data *SeedData, orgRefMap, u
 	if err != nil {
 		return fmt.Errorf("error at beginning tx for seedOrgOwners: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	s.Log().Debug("Seeding org owners: start")
 	defer s.Log().Debug("Seeding org owners: end")
 	for _, oo := range data.OrgOwners {

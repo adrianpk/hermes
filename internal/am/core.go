@@ -116,7 +116,6 @@ func WithCfg(cfg *Config) Option {
 	return func(c Core) {
 		c.SetCfg(cfg)
 	}
-	
 }
 
 // Now returns the current time.

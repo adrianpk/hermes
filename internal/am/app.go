@@ -68,7 +68,6 @@ func NewApp(name, version string, fs embed.FS, opts ...Option) *App {
 
 	resPath := app.Cfg().StrValOrDef(Key.ServerResPath, resPath)
 
-	app.Router.Mount("/api", app.APIRouter)
 	app.Router.Mount(resPath, app.ResRouter)
 	app.ResRouter.Mount(resPath, app.ResAPIRouter)
 
@@ -127,7 +126,7 @@ func (a *App) Setup(ctx context.Context) error {
 		if !ok {
 			continue
 		}
-		if _, ok := dep.Core.(Core); !ok {
+		if dep.Core == nil {
 			msg := fmt.Sprintf("cannot setup %s: not a core dep", dep.Core.Name())
 			a.Log().Info(msg)
 			continue
@@ -173,7 +172,7 @@ func (a *App) Start(ctx context.Context) error {
 		if !ok {
 			continue
 		}
-		if coreDep, ok := dep.Core.(Core); ok {
+		if coreDep := dep.Core; coreDep != nil {
 			err := coreDep.Start(ctx)
 			if err != nil {
 				msg := fmt.Sprintf("failed to start %s: %v", coreDep.Name(), err)
@@ -249,7 +248,7 @@ func (a *App) MountAPI(version, path string, handler http.Handler) {
 		router.Mount(path, handler)
 		a.APIRouters[versionPath] = router
 	}
-	a.APIRouter.Mount(version, router)
+	a.APIRouter.Mount("/api"+version, router)
 }
 
 func (a *App) MountRes(path string, handler http.Handler) {
@@ -304,7 +303,7 @@ func (a *App) checkSetup() error {
 func genName() string {
 	u := uuid.New()
 	segments := strings.Split(u.String(), "-")
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	firstPart := make([]rune, 8)
 	for i := range firstPart {
 		firstPart[i] = 'a' + rune(rand.Intn(26))

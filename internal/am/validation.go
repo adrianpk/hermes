@@ -154,7 +154,7 @@ func MaxLength(field, val string, max int) Validator {
 }
 
 // Equals validates that two string fields are equal.
-func Equals(field string, a, b string) Validator {
+func Equals(field, a, b string) Validator {
 	return func(_ any) (Validation, error) {
 		v := Validation{}
 		if a != b {

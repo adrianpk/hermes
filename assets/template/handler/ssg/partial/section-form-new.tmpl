@@ -48,7 +48,7 @@
       type="text"
       id="image"
       name="image"
-      value="{{ $form.Image }}"
+      value="{{ .Data.Image }}"
       placeholder="img/section-image.png"
       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
     />
@@ -60,7 +60,7 @@
       type="text"
       id="header"
       name="header"
-      value="{{ $form.Header }}"
+      value="{{ .Data.Header }}"
       placeholder="section-header.png"
       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
     />
@@ -73,7 +73,9 @@
       name="layout_id"
       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
     >
-      <option value="00000000-0000-0000-0000-000000000001" {{ if eq (printf "%v" $form.LayoutID) "00000000-0000-0000-0000-000000000001" }}selected{{ end }}>default</option>
+      {{- range $layout := .Select.layouts }}
+        <option value="{{ $layout.Value }}" {{ if eq $form.LayoutID $layout.Value }}selected{{ end }}>{{ $layout.Label }}</option>
+      {{- end }}
     </select>
     {{ FieldMsg $form "layout_id" }}
   </div>

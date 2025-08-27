@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"net/http"
-	"time"
 
 	"github.com/adrianpk/hermes/internal/am"
 	"github.com/google/uuid"
@@ -202,14 +201,7 @@ func (h *WebHandler) UpdatePermission(w http.ResponseWriter, r *http.Request) {
 	description := r.Form.Get("description")
 	permission.Name = name
 	permission.Description = description
-	permission.BaseModel = am.NewModel(
-		am.WithID(permission.ID()),
-		am.WithType(permissionType),
-		am.WithCreatedBy(permission.CreatedBy()),
-		am.WithUpdatedBy(uuid.New()),
-		am.WithCreatedAt(permission.CreatedAt()),
-		am.WithUpdatedAt(time.Now()),
-	)
+	permission.GenUpdateValues()
 
 	err = h.service.UpdatePermission(ctx, permission)
 	if err != nil {

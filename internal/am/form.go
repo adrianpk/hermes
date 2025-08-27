@@ -62,6 +62,7 @@ func (f *BaseForm) SetButton(button Button) { f.button = button }
 func (f *BaseForm) SetSubmitButtonText(text string) {
 	f.button.Text = text
 }
+
 func (f *BaseForm) SetSubmitButtonStyle(style string) {
 	f.button.Style = style
 }
@@ -74,9 +75,11 @@ func (f *BaseForm) GenCSRFToken(r *http.Request) {
 func (f *BaseForm) SetValidation(validation *Validation) {
 	f.validation = validation
 }
+
 func (f *BaseForm) Validation() Validation {
 	return *f.validation
 }
+
 func (f *BaseForm) HasErrors() bool {
 	return !f.Validation().IsValid()
 }

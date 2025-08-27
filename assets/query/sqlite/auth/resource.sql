@@ -20,10 +20,10 @@ WHERE r.id = ?;
 
 -- Create
 INSERT INTO resource (id, name, description, short_id, created_by, updated_by, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (:id, :name, :description, :short_id, :created_by, :updated_by, :created_at, :updated_at);
 
 -- Update
-UPDATE resource SET name = ?, description = ?, short_id = ?, updated_by = ?, updated_at = ? WHERE id = ?;
+UPDATE resource SET name = :name, description = :description, short_id = :short_id, updated_by = :updated_by, updated_at = :updated_at WHERE id = :id;
 
 -- Delete
 DELETE FROM resource WHERE id = ?;

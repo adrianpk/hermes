@@ -19,7 +19,7 @@ func (h *WebHandler) ShowOrg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	owners, err := h.service.GetOrgOwners(ctx, org.ID())
+	owners, err := h.service.GetOrgOwners(ctx, org.GetID())
 	if err != nil {
 		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
 		return
@@ -34,7 +34,7 @@ func (h *WebHandler) ShowOrg(w http.ResponseWriter, r *http.Request) {
 	})
 
 	menu := page.NewMenu(authPath)
-	menu.AddGenericItem("list-org-owners", org.ID().String(), "Owners")
+	menu.AddGenericItem("list-org-owners", org.GetID().String(), "Owners")
 
 	tmpl, err := h.tm.Get("auth", "show-org")
 	if err != nil {
@@ -72,13 +72,13 @@ func (h *WebHandler) ListOrgOwners(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	owners, err := h.service.GetOrgOwners(ctx, org.ID())
+	owners, err := h.service.GetOrgOwners(ctx, org.GetID())
 	if err != nil {
 		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
 		return
 	}
 
-	unassigned, err := h.service.GetOrgUnassignedOwners(ctx, org.ID())
+	unassigned, err := h.service.GetOrgUnassignedOwners(ctx, org.GetID())
 	if err != nil {
 		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
 		return

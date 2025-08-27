@@ -53,3 +53,12 @@ INSERT INTO user_permission (user_id, permission_id) VALUES (?, ?);
 
 -- RemovePermissionFromUser
 DELETE FROM user_permission WHERE user_id = ? AND permission_id = ?;
+
+-- Res: UserPermission
+-- Table: user_permission
+-- GetContextualPermissions
+SELECT p.id, p.name, p.short_id
+FROM permission p
+         JOIN role_permission rp ON p.id = rp.permission_id
+         JOIN user_role ur ON rp.role_id = ur.role_id
+WHERE ur.user_id = ? AND ur.context_type = ? AND ur.context_id = ?;

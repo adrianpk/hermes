@@ -182,7 +182,7 @@ func (m *Migrator) loadDBMigrations() ([]Migration, error) {
 
 // Note: We could optimize by only checking the latest migration to determine pending ones.
 // However, for now, we are verifying all of them to ensure completeness in certain scenarios.
-func (m *Migrator) findPendingMigrations(fileMigrations []Migration, dbMigrations []Migration) []Migration {
+func (m *Migrator) findPendingMigrations(fileMigrations, dbMigrations []Migration) []Migration {
 	dbMigrationsMap := make(map[string]struct{})
 	for _, dbMigration := range dbMigrations {
 		dbMigrationsMap[dbMigration.Datetime+dbMigration.Name] = struct{}{}
@@ -197,7 +197,7 @@ func (m *Migrator) findPendingMigrations(fileMigrations []Migration, dbMigration
 	return pendingMigrations
 }
 
-func (m *Migrator) logMigrations(fileMigrations []Migration, dbMigrations []Migration, pendingMigrations []Migration) {
+func (m *Migrator) logMigrations(fileMigrations, dbMigrations, pendingMigrations []Migration) {
 	m.Log().Info("File-based migrations:")
 	for _, migration := range fileMigrations {
 		m.Log().Info(fmt.Sprintf("  %s-%s", migration.Datetime, migration.Name))

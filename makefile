@@ -30,6 +30,16 @@ build:
 	@go build -o $(BINARY) $(MAIN_SRC)
 	@echo "Build complete: $(BINARY)"
 
+# Run linter
+lint:
+	@echo "Running linter and fixing issues..."
+	@golangci-lint run --fix
+
+# Format code
+format:
+	@echo "Formatting code..."
+	@gofmt -w .
+
 # Run the application with environment variables
 run: setenv build
 	@echo "Running $(APP_NAME) with environment variables..."
@@ -78,6 +88,11 @@ setenv:
 	@export HERMES_RENDER_WEB_ERRORS="true"
 	@export HERMES_RENDER_API_ERRORS="true"
 	@echo "Environment variables set."
+
+# Run tests
+test:
+	@echo "Running tests..."
+	@echo "No tests configured yet."
 
 # Generate migration
 new-migration:

@@ -45,7 +45,7 @@ func (m *Menu) AddResShowItem(resource Resource, text ...string) {
 	m.Items = append(m.Items, MenuItem{
 		Feat: Feat{
 			Path:   m.Path,
-			Action: resource.ID().String(),
+			Action: resource.GetID().String(),
 		},
 		Text:  btnText,
 		Style: BtnPrimaryStyle,
@@ -61,7 +61,7 @@ func (m *Menu) AddResEditItem(resource Resource, text ...string) {
 	m.Items = append(m.Items, MenuItem{
 		Feat: Feat{
 			Path:   m.Path,
-			Action: resource.ID().String() + "/edit",
+			Action: resource.GetID().String() + "/edit",
 		},
 		Text:  btnText,
 		Style: BtnPrimaryStyle,
@@ -77,7 +77,7 @@ func (m *Menu) AddResDeleteItem(resource Resource, text ...string) {
 	m.Items = append(m.Items, MenuItem{
 		Feat: Feat{
 			Path:   m.Path,
-			Action: resource.ID().String(),
+			Action: resource.GetID().String(),
 		},
 		Text:      btnText,
 		Style:     BtnDangerStyle,

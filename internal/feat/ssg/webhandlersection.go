@@ -40,7 +40,7 @@ func (h *WebHandler) CreateSection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	section := ToSectionFromForm(form)
+	section := ToSection(form)
 	section.GenCreateValues()
 
 	err = h.service.CreateSection(ctx, section)
@@ -51,17 +51,16 @@ func (h *WebHandler) CreateSection(w http.ResponseWriter, r *http.Request) {
 
 	h.FlashInfo(w, r, "Section created")
 
-	path := am.ListPath(ssgPath, sectionPath)
-	path = "new-section"
+	path := "new-section"
 
 	h.Redir(w, r, path, http.StatusSeeOther)
 }
 
 func (h *WebHandler) newSection(w http.ResponseWriter, r *http.Request, form SectionForm, errorMessage string, statusCode int) {
-	section := ToSectionFromForm(form)
+	section := ToSection(form)
 
 	page := am.NewPage(r, section)
-	page.SetForm(form)
+	page.SetForm(&form)
 	page.Form.SetAction(am.CreatePath(ssgPath, sectionPath))
 	page.Form.SetSubmitButtonText("Create")
 

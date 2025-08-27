@@ -91,7 +91,7 @@ func (h *WebHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if validation.HasErrors() {
 		for _, err := range validation.Errors {
-			h.AddFlash(w, r, am.NotificationType.Error, err)
+			_ = h.AddFlash(w, r, am.NotificationType.Error, err)
 		}
 		http.Redirect(w, r, am.NewPath(authPath, "user"), http.StatusSeeOther)
 		return
@@ -106,7 +106,7 @@ func (h *WebHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	err = h.service.CreateUser(ctx, newUser)
+	err = h.service.CreateUser(ctx, &newUser)
 	if err != nil {
 		h.Err(w, err, ErrCannotCreateUser, http.StatusInternalServerError)
 		return
@@ -141,8 +141,8 @@ func (h *WebHandler) ShowUser(w http.ResponseWriter, r *http.Request) {
 	menu.AddListItem(user)
 	menu.AddEditItem(user)
 	menu.AddDeleteItem(user)
-	menu.AddGenericItem(ActionListUserRoles, user.ID().String(), TextRoles)
-	menu.AddGenericItem(ActionListUserPermissions, user.ID().String(), TextPermissions)
+	menu.AddGenericItem(ActionListUserRoles, user.GetID().String(), TextRoles)
+	menu.AddGenericItem(ActionListUserPermissions, user.GetID().String(), TextPermissions)
 
 	tmpl, err := h.tm.Get("auth", "show-user")
 	if err != nil {
@@ -237,7 +237,7 @@ func (h *WebHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		user.PasswordEnc = passwordEnc
 	}
 
-	err = h.service.UpdateUser(ctx, user)
+	err = h.service.UpdateUser(ctx, &user)
 	if err != nil {
 		h.Err(w, err, am.ErrCannotUpdateResource, http.StatusInternalServerError)
 		return

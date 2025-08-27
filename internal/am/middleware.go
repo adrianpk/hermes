@@ -75,7 +75,7 @@ func initCSRF(cfg *Config) {
 }
 
 // ReqIDKey is the context key for the request ID.
-const ReqIDKey = "requestID"
+var ReqIDKey = contextKey("requestID")
 
 // RequestIDMw is a middleware that assigns a unique ID to each request and stores it in the context and as a header.
 func RequestIDMw(next http.Handler) http.Handler {

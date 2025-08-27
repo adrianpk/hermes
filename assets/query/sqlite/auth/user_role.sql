@@ -2,11 +2,7 @@
 -- Table: user_role
 
 -- AddRole
-INSERT INTO user_role (user_id, role_id, context_type, context_id)
-SELECT ?, ?, ?, ?
-WHERE EXISTS (
-    SELECT 1 FROM role WHERE id = ?
-);
+INSERT INTO user_role (user_id, role_id, context_type, context_id) VALUES (?, ?, ?, ?);
 
 -- RemoveRole
 DELETE FROM user_role

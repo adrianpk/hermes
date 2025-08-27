@@ -8,7 +8,7 @@ import (
 
 // ListPath returns the path for listing resources
 func ListPath(basePath, resourceType string) string {
-	return fmt.Sprintf("%s/list-%ss", basePath, resourceType)
+	return fmt.Sprintf("%s/list-%s", basePath, resourceType)
 }
 
 // NewPath returns the path for creating a new resource
@@ -23,7 +23,7 @@ func CreatePath(basePath, resourceType string) string {
 
 // ShowPath returns the path for showing a resource
 func ShowPath(basePath, resourceType string, id uuid.UUID) string {
-	return fmt.Sprintf("%s/%ss/%s", basePath, resourceType, id)
+	return fmt.Sprintf("%s/%s/%s", basePath, resourceType, id)
 }
 
 // EditPath returns the path for editing a resource
@@ -43,7 +43,7 @@ func DeletePath(basePath, resourceType string) string {
 
 // ListRelatedPath returns the path for listing related resources
 func ListRelatedPath(basePath, resourceType, relatedType string, id uuid.UUID) string {
-	return fmt.Sprintf("%s/list-%s-%ss?id=%s", basePath, resourceType, relatedType, id)
+	return fmt.Sprintf("%s/list-%s-%s?id=%s", basePath, resourceType, relatedType, id)
 }
 
 // AddRelatedPath returns the path for adding a related resource

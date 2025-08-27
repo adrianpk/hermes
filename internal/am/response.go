@@ -36,7 +36,7 @@ func NewSuccessResponse(message string, data interface{}) Response {
 	}
 }
 
-func NewErrorResponse(message string, code string, details string) Response {
+func NewErrorResponse(message, code, details string) Response {
 	return Response{
 		Status:  StatusError,
 		Message: message,
@@ -50,5 +50,5 @@ func NewErrorResponse(message string, code string, details string) Response {
 func Respond(w http.ResponseWriter, status int, response Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }

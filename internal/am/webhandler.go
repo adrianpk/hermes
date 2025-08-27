@@ -63,10 +63,10 @@ func (h *WebHandler) OK(w http.ResponseWriter, r *http.Request, buf *bytes.Buffe
 		if err != nil {
 			h.Log().Errorf("Failed to marshal flash messages: %v", err)
 		} else {
-            triggerHeader := fmt.Sprintf("{\"flashMessage\": %s}", flashJSON)
-            h.Log().Infof("Setting HX-Trigger header: %s", triggerHeader)
-            w.Header().Set("HX-Trigger", triggerHeader)
-        }
+			triggerHeader := fmt.Sprintf("{\"flashMessage\": %s}", flashJSON)
+			h.Log().Infof("Setting HX-Trigger header: %s", triggerHeader)
+			w.Header().Set("HX-Trigger", triggerHeader)
+		}
 	}
 
 	h.FlashManager().ClearFlashCookie(w)

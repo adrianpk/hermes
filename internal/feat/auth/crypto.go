@@ -31,7 +31,7 @@ func EncryptEmail(email string, key []byte) ([]byte, error) {
 }
 
 // DecryptEmail decrypts an email using AES-GCM
-func DecryptEmail(ciphertext []byte, key []byte) (string, error) {
+func DecryptEmail(ciphertext, key []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err

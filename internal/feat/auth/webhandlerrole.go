@@ -126,7 +126,7 @@ func (h *WebHandler) ShowRole(w http.ResponseWriter, r *http.Request) {
 	menu.AddListItem(role)
 	menu.AddEditItem(role)
 	menu.AddDeleteItem(role)
-	menu.AddGenericItem("list-role-permissions", role.ID().String(), "Permissions")
+	menu.AddGenericItem("list-role-permissions", role.GetID().String(), "Permissions")
 
 	tmpl, err := h.tm.Get("auth", "show-role")
 	if err != nil {
@@ -280,7 +280,7 @@ func (h *WebHandler) ListRolePermissions(w http.ResponseWriter, r *http.Request)
 		Permissions          []Permission
 		AvailablePermissions []Permission
 	}{
-		ID:                   role.ID(),
+		ID:                   role.GetID(),
 		Name:                 role.Name,
 		Description:          role.Description,
 		Permissions:          assigned,
@@ -291,7 +291,7 @@ func (h *WebHandler) ListRolePermissions(w http.ResponseWriter, r *http.Request)
 	menu.AddListItem(role)
 	menu.AddEditItem(role)
 	menu.AddDeleteItem(role)
-	menu.AddGenericItem("list-role-permissions", role.ID().String(), "Permissions")
+	menu.AddGenericItem("list-role-permissions", role.GetID().String(), "Permissions")
 
 	tmpl, err := h.tm.Get("auth", "list-role-permissions")
 	if err != nil {
@@ -431,7 +431,7 @@ func (h *WebHandler) ListUserContextualRoles(w http.ResponseWriter, r *http.Requ
 	page.Form.SetAction(am.CreatePath(authPath, contextualRolePath))
 
 	menu := am.NewMenu(authPath)
-	menu.AddGenericItem("list-team-members", team.ID().String(), "Back")
+	menu.AddGenericItem("list-team-members", team.GetID().String(), "Back")
 
 	tmpl, err := h.tm.Get("auth", "list-user-contextual-roles")
 	if err != nil {
