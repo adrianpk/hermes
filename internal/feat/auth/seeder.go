@@ -168,7 +168,7 @@ func (s *Seeder) seedUsers(ctx context.Context, data *SeedData, userRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting user: %w", err)
 		}
-		userRefMap[u.Ref()] = u.ID()
+		userRefMap[u.Ref()] = u.GetID()
 	}
 	return tx.Commit()
 }
@@ -188,7 +188,7 @@ func (s *Seeder) seedRoles(ctx context.Context, data *SeedData, roleRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting role: %w", err)
 		}
-		roleRefMap[r.Ref()] = r.ID()
+		roleRefMap[r.Ref()] = r.GetID()
 	}
 	return tx.Commit()
 }
@@ -208,7 +208,7 @@ func (s *Seeder) seedPermissions(ctx context.Context, data *SeedData, permRefMap
 		if err != nil {
 			return fmt.Errorf("error inserting permission: %w", err)
 		}
-		permRefMap[p.Ref()] = p.ID()
+		permRefMap[p.Ref()] = p.GetID()
 	}
 	return tx.Commit()
 }
@@ -228,7 +228,7 @@ func (s *Seeder) seedOrgs(ctx context.Context, data *SeedData, orgRefMap map[str
 		if err != nil {
 			return fmt.Errorf("error inserting org: %w", err)
 		}
-		orgRefMap[o.Ref()] = o.ID()
+		orgRefMap[o.Ref()] = o.GetID()
 	}
 	b, _ := json.MarshalIndent(orgRefMap, "", "  ")
 	s.Log().Debug("=== [SEED] SeedData state before commit ===")
@@ -257,7 +257,7 @@ func (s *Seeder) seedTeams(ctx context.Context, data *SeedData, teamRefMap map[s
 		if err != nil {
 			return fmt.Errorf("error inserting team: %w", err)
 		}
-		teamRefMap[t.Ref()] = t.ID()
+		teamRefMap[t.Ref()] = t.GetID()
 		b, _ := json.MarshalIndent(teamRefMap, "", "  ")
 		s.Log().Debug("=== [SEED] SeedData state before commit ===")
 		s.Log().Debug(string(b))
@@ -280,7 +280,7 @@ func (s *Seeder) seedResources(ctx context.Context, data *SeedData, resourceRefM
 		if err != nil {
 			return fmt.Errorf("error inserting resource: %w", err)
 		}
-		resourceRefMap[r.Ref()] = r.ID()
+		resourceRefMap[r.Ref()] = r.GetID()
 	}
 	return tx.Commit()
 }
@@ -321,11 +321,7 @@ func (s *Seeder) seedRolePermissions(ctx context.Context, data *SeedData, roleRe
 		if !ok1 || !ok2 {
 			return fmt.Errorf("error finding role or permission ref for role_permission: %+v", rp)
 		}
-		perm, err := s.repo.GetPermission(ctx, permID)
-		if err != nil {
-			return fmt.Errorf("error getting permission: %w", err)
-		}
-		err = s.repo.AddPermissionToRole(ctx, roleID, perm)
+		err = s.repo.AddPermissionToRole(ctx, roleID, permID)
 		if err != nil {
 			return fmt.Errorf("error adding permission to role: %w", err)
 		}

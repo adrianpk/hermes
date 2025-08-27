@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/adrianpk/hermes/internal/am"
+	"github.com/google/uuid"
 )
 
 const (
@@ -41,11 +42,11 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := ToContentFromForm(form)
+	content := ToContent(form)
 	content.GenCreateValues()
 
 	user := h.sampleUserInSession(r)
-	content.UserID = user.ID()
+	content.UserID = user.GetID()
 	content.GenCreateValues()
 
 	err = h.service.CreateContent(ctx, content)
@@ -56,7 +57,7 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 
 	// If HTMX request, set HX-Redirect header and return
 	if am.IsHTMXRequest(r) {
-		redirectURL := am.EditPath(ssgPath, contentPath, content.ID())
+		redirectURL := am.EditPath(ssgPath, contentPath, content.GetID())
 		h.Log().Infof("HTMX request: Setting HX-Redirect to %s", redirectURL)
 		w.Header().Set("HX-Redirect", redirectURL)
 		h.renderContentForm(w, r, form, content, "", http.StatusOK)
@@ -64,7 +65,7 @@ func (h *WebHandler) CreateContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.FlashInfo(w, r, "Content created")
-	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.ID()), http.StatusSeeOther)
+	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.GetID()), http.StatusSeeOther)
 }
 
 func (h *WebHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
@@ -83,11 +84,11 @@ func (h *WebHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := ToContentFromForm(form)
+	content := ToContent(form)
 	content.GenUpdateValues()
 
 	user := h.sampleUserInSession(r)
-	content.UserID = user.ID()
+	content.UserID = user.GetID()
 
 	err = h.service.UpdateContent(ctx, content)
 	if err != nil {
@@ -104,7 +105,7 @@ func (h *WebHandler) UpdateContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.FlashInfo(w, r, "Content updated")
-	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.ID()), http.StatusSeeOther)
+	h.Redir(w, r, am.EditPath(ssgPath, contentPath, content.GetID()), http.StatusSeeOther)
 }
 
 func (h *WebHandler) renderContentForm(w http.ResponseWriter, r *http.Request, form ContentForm, content Content, errorMessage string, statusCode int) {
@@ -112,11 +113,7 @@ func (h *WebHandler) renderContentForm(w http.ResponseWriter, r *http.Request, f
 	h.Log().Infof("renderContentForm - form: %+v", form)
 	h.Log().Infof("renderContentForm - form.ID: %s", form.ID)
 	h.Log().Infof("renderContentForm - content: %+v", content)
-	if content.BaseModel != nil {
-		h.Log().Infof("renderContentForm - content.BaseModel ID: %s", content.BaseModel.ID())
-	} else {
-		h.Log().Info("renderContentForm - content.BaseModel is nil")
-	}
+	
 	ctx := r.Context()
 
 	sections, err := h.service.GetSections(ctx) // NOTE: This value should be cached
@@ -126,7 +123,7 @@ func (h *WebHandler) renderContentForm(w http.ResponseWriter, r *http.Request, f
 	}
 
 	page := am.NewPage(r, content)
-	page.SetForm(form)
+	page.SetForm(&form)
 
 	if content.IsZero() {
 		page.Name = "New Content"
@@ -167,12 +164,17 @@ func (h *WebHandler) EditContent(w http.ResponseWriter, r *http.Request) {
 	h.Log().Info("Edit content")
 	ctx := r.Context()
 
-	id := r.URL.Query().Get("id")
-	h.Log().Infof("EditContent: Received ID: %s", id)
-	if id == "" {
+	idStr := r.URL.Query().Get("id")
+	h.Log().Infof("EditContent: Received ID: %s", idStr)
+	if idStr == "" {
 		h.Err(w, nil, am.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		h.Err(w, err, am.ErrInvalidID, http.StatusBadRequest)
+		return	}
 
 	content, err := h.service.GetContent(ctx, id)
 	if err != nil {

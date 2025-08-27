@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
-	"time"
+	
 
 	"github.com/adrianpk/hermes/internal/am"
 	"github.com/google/uuid"
@@ -19,7 +19,7 @@ func (h *WebHandler) ListTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, err := h.service.GetAllTeams(ctx, org.ID())
+	teams, err := h.service.GetAllTeams(ctx, org.GetID())
 	if err != nil {
 		h.Err(w, err, am.ErrCannotGetResources, http.StatusInternalServerError)
 		return
@@ -63,7 +63,7 @@ func (h *WebHandler) NewTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team := NewTeam(org.ID(), "", "", "")
+	team := NewTeam(org.GetID(), "", "", "")
 	page := am.NewPage(r, team)
 	page.Form.SetAction(am.CreatePath(authPath, teamPath))
 	page.Form.SetSubmitButtonText("Create")
@@ -107,14 +107,8 @@ func (h *WebHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	shortDescription := r.Form.Get("short_description")
 	description := r.Form.Get("description")
 
-	team := NewTeam(org.ID(), name, shortDescription, description)
-	team.BaseModel = am.NewModel(
-		am.WithID(team.ID()),
-		am.WithCreatedBy(team.CreatedBy()),
-		am.WithUpdatedBy(team.UpdatedBy()),
-		am.WithCreatedAt(team.CreatedAt()),
-		am.WithUpdatedAt(team.UpdatedAt()),
-	)
+	team := NewTeam(org.GetID(), name, shortDescription, description)
+		team.GenCreateValues()
 
 	err = h.service.CreateTeam(ctx, team)
 	if err != nil {
@@ -146,7 +140,7 @@ func (h *WebHandler) ShowTeam(w http.ResponseWriter, r *http.Request) {
 	menu := page.NewMenu(authPath)
 	menu.AddListItem(team)
 	menu.AddEditItem(team)
-	menu.AddGenericItem(ActionListTeamMembers, team.ID().String(), TextMembers)
+	menu.AddGenericItem(ActionListTeamMembers, team.GetID().String(), TextMembers)
 
 	tmpl, err := h.tm.Get("auth", "show-team")
 	if err != nil {
@@ -229,16 +223,10 @@ func (h *WebHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team.Name = r.Form.Get("name")
+		team.Name = r.Form.Get("name")
 	team.ShortDescription = r.Form.Get("short_description")
 	team.Description = r.Form.Get("description")
-	team.BaseModel = am.NewModel(
-		am.WithID(team.ID()),
-		am.WithCreatedBy(team.CreatedBy()),
-		am.WithUpdatedBy(uuid.New()),
-		am.WithCreatedAt(team.CreatedAt()),
-		am.WithUpdatedAt(time.Now()),
-	)
+	team.GenUpdateValues()
 
 	err = h.service.UpdateTeam(ctx, team)
 	if err != nil {

@@ -141,8 +141,8 @@ func (h *WebHandler) ShowUser(w http.ResponseWriter, r *http.Request) {
 	menu.AddListItem(user)
 	menu.AddEditItem(user)
 	menu.AddDeleteItem(user)
-	menu.AddGenericItem(ActionListUserRoles, user.ID().String(), TextRoles)
-	menu.AddGenericItem(ActionListUserPermissions, user.ID().String(), TextPermissions)
+	menu.AddGenericItem(ActionListUserRoles, user.GetID().String(), TextRoles)
+	menu.AddGenericItem(ActionListUserPermissions, user.GetID().String(), TextPermissions)
 
 	tmpl, err := h.tm.Get("auth", "show-user")
 	if err != nil {

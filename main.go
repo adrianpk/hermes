@@ -38,7 +38,6 @@ func main() {
 
 	repo := sqlite.NewHermesRepo(queryManager)
 	migrator := am.NewMigrator(assetsFS, engine)
-	seeder := am.NewSeeder(assetsFS, engine)
 	fileServer := am.NewFileServer(assetsFS)
 
 	app.MountFileServer("/", fileServer)
@@ -52,15 +51,19 @@ func main() {
 	app.MountWeb("/auth", authWebRouter)
 
 	// SSG feature
-	ssgService := ssg.NewService(repo)
-	ssgWebHandler := ssg.NewWebHandler(templateManager, fm, ssgService)
-	ssgWebRouter := ssg.NewWebRouter(ssgWebHandler, append(fm.Middlewares(), am.LogHeadersMw))
+	ssgBFF := ssg.NewBFF(templateManager, fm, opts...)
+	ssgWebRouter := ssg.NewWebRouter(ssgBFF, append(fm.Middlewares(), am.LogHeadersMw))
 	ssgSeeder := ssg.NewSeeder(assetsFS, engine, repo)
 	app.MountWeb("/ssg", ssgWebRouter)
 
+	// SSG API
+	ssgService := ssg.NewService(repo)
+	ssgAPIHandler := ssg.NewAPIHandler("ssg-api-handler", ssgService)
+	ssgAPIRouter := ssg.NewAPIRouter(ssgAPIHandler, nil)
+	app.MountAPI("v1", "/ssg", ssgAPIRouter)
+
 	// Add deps
 	app.Add(migrator)
-	app.Add(seeder)
 	app.Add(fm)
 	app.Add(fileServer)
 	app.Add(queryManager)
@@ -70,10 +73,12 @@ func main() {
 	app.Add(authWebHandler)
 	app.Add(authWebRouter)
 	app.Add(authSeeder)
-	app.Add(ssgService)
-	app.Add(ssgWebHandler)
+	app.Add(ssgBFF)
 	app.Add(ssgWebRouter)
 	app.Add(ssgSeeder)
+	app.Add(ssgService)
+	app.Add(ssgAPIHandler)
+	app.Add(ssgAPIRouter)
 
 	err := app.Setup(ctx)
 	if err != nil {

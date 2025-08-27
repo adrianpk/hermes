@@ -40,7 +40,7 @@ type Repo interface {
 	DeleteRole(ctx context.Context, roleID uuid.UUID) error
 	GetRolePermissions(ctx context.Context, roleID uuid.UUID) ([]Permission, error)
 	GetRoleUnassignedPermissions(ctx context.Context, roleID uuid.UUID) ([]Permission, error)
-	AddPermissionToRole(ctx context.Context, roleID uuid.UUID, permission Permission) error
+	AddPermissionToRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error
 	RemovePermissionFromRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error
 
 	// SECTION: Permission-related methods

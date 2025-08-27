@@ -68,7 +68,7 @@ func NewApp(name, version string, fs embed.FS, opts ...Option) *App {
 
 	resPath := app.Cfg().StrValOrDef(Key.ServerResPath, resPath)
 
-	app.Router.Mount("/api", app.APIRouter)
+	
 	app.Router.Mount(resPath, app.ResRouter)
 	app.ResRouter.Mount(resPath, app.ResAPIRouter)
 
@@ -249,7 +249,7 @@ func (a *App) MountAPI(version, path string, handler http.Handler) {
 		router.Mount(path, handler)
 		a.APIRouters[versionPath] = router
 	}
-	a.APIRouter.Mount(version, router)
+	a.APIRouter.Mount("/api"+version, router)
 }
 
 func (a *App) MountRes(path string, handler http.Handler) {

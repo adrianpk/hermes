@@ -1,15 +1,12 @@
--- Res: Section
--- Table: section
 
--- Create
-INSERT INTO section (
-    id, short_id, name, description, path, layout_id, image, header, created_by, updated_by, created_at, updated_at
-) VALUES (
-    :id, :short_id, :name, :description, :path, :layout_id, :image, :header, :created_by, :updated_by, :created_at, :updated_at
-);
-
--- GetAll
-SELECT * FROM section;
-
--- Get
-SELECT * FROM section WHERE id = :id;
+-- Update
+UPDATE section SET
+    name = :name,
+    description = :description,
+    path = :path,
+    layout_id = :layout_id,
+    image = :image,
+    header = :header,
+    updated_by = :updated_by,
+    updated_at = :updated_at
+WHERE id = :id;

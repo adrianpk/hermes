@@ -112,7 +112,7 @@ func (svc *BaseService) GetUsers(ctx context.Context) ([]User, error) {
 		if len(users[i].EmailEnc) > 0 {
 			email, err := DecryptEmail(users[i].EmailEnc, encKey)
 			if err != nil {
-				return nil, fmt.Errorf("error decrypting email for user %s: %w", users[i].ID(), err)
+				return nil, fmt.Errorf("error decrypting email for user %s: %w", users[i].GetID(), err)
 			}
 			users[i].Email = email
 		}
@@ -132,7 +132,7 @@ func (svc *BaseService) GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	if len(user.EmailEnc) > 0 {
 		email, err := DecryptEmail(user.EmailEnc, encKey)
 		if err != nil {
-			return User{}, fmt.Errorf("failed to decrypt email for user %s: %w", user.ID(), err)
+			return User{}, fmt.Errorf("failed to decrypt email for user %s: %w", user.GetID(), err)
 		}
 		user.Email = email
 	}
@@ -277,11 +277,7 @@ func (svc *BaseService) RemovePermissionFromUser(ctx context.Context, userID uui
 }
 
 func (svc *BaseService) AddPermissionToRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error {
-	permission, err := svc.GetPermission(ctx, permissionID)
-	if err != nil {
-		return err
-	}
-	return svc.repo.AddPermissionToRole(ctx, roleID, permission)
+	return svc.repo.AddPermissionToRole(ctx, roleID, permissionID)
 }
 
 func (svc *BaseService) RemovePermissionFromRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error {

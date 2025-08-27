@@ -31,12 +31,12 @@ func NewWebRouter(name string, opts ...Option) *Router {
 		Router: chi.NewRouter(),
 	}
 
-	cfg := core.Cfg()
-	csrf := CSRFMw(cfg)
+	// cfg := core.Cfg()
+	// csrf := CSRFMw(cfg)
 
-	r.Use(MethodOverrideMw)
-	r.Use(RequestIDMw)
-	r.Use(csrf)
+	// r.Use(MethodOverrideMw)
+	// r.Use(RequestIDMw)
+	// r.Use(csrf)
 
 	return r
 }
@@ -49,7 +49,7 @@ func NewAPIRouter(name string, opts ...Option) *Router {
 		Router: chi.NewRouter(),
 	}
 
-	r.Use(MethodOverrideMw)
+	// r.Use(MethodOverrideMw)
 
 	return r
 }

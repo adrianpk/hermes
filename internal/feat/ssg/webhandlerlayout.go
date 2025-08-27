@@ -40,7 +40,7 @@ func (h *WebHandler) CreateLayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	layout := ToLayoutFromForm(form)
+	layout := ToLayout(form)
 	layout.GenCreateValues()
 
 	err = h.service.CreateLayout(ctx, layout)
@@ -58,10 +58,10 @@ func (h *WebHandler) CreateLayout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebHandler) newLayout(w http.ResponseWriter, r *http.Request, form LayoutForm, errorMessage string, statusCode int) {
-	layout := ToLayoutFromForm(form)
+	layout := ToLayout(form)
 
 	page := am.NewPage(r, layout)
-	page.SetForm(form)
+	page.SetForm(&form)
 	page.Form.SetAction(am.CreatePath(ssgPath, layoutPath))
 	page.Form.SetSubmitButtonText("Create")
 
